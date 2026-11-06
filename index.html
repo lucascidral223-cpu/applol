@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu LoL</title>
+<style>
+:root{--bg:#eef1f0;--surface:#fff;--text:#16212b;--muted:#5d6b76;--line:#d5dcda;--gold:#8a6a1c;--good:#1f7a55;--bad:#b0443d;--chip:#e3e9e7}
+@media (prefers-color-scheme:dark){:root{--bg:#121c26;--surface:#1a2733;--text:#e9e6dc;--muted:#93a1ad;--line:#2b3a47;--gold:#d2b261;--good:#62b891;--bad:#d9786f;--chip:#243342;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.5 system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;width:100%}
+button{font:600 14px system-ui,sans-serif;color:var(--text);background:var(--chip);border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#grid{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow-y:auto;margin:12px 0 28px;padding:2px}
+#grid button{padding:0;border-radius:8px;width:48px;height:48px;overflow:hidden}
+#grid button[aria-pressed="true"]{outline:2px solid var(--gold)}
+#grid img{width:100%;height:100%;display:block}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header img{width:84px;height:84px;border-radius:12px}
+h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1;margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:4px 0 0}
+.roles{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.roles button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+section{margin-top:28px}
+h2{font-size:1.05rem;margin:0 0 12px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+.list{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 10px 4px 4px;font-weight:600;font-size:14px}
+.chip img{width:36px;height:36px;border-radius:6px}
+.chip small{color:var(--muted);font-weight:400}
+.bad h2{color:var(--bad)}.good h2{color:var(--good)}
+.mu{display:flex;flex-direction:column;gap:6px}
+.mu .chip{justify-content:flex-start}
+.mu .wr{margin-left:auto;font-weight:800}
+.bad .wr{color:var(--bad)}.good .wr{color:var(--good)}
+.tips{margin:0;padding-left:18px}.tips li{margin-bottom:8px}
+.sp{display:flex;gap:12px;margin-bottom:14px}.sp img{width:44px;height:44px;border-radius:8px;flex:none}
+.sp b{display:block}.sp span{color:var(--muted);font-size:14px}
+.hint,#msg{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <input id="q" placeholder="Buscar campeão…" aria-label="Buscar campeão" autocomplete="off">
+  <div id="grid"></div>
+  <div id="view"><p id="msg">Carregando…</p></div>
+</main>
+<script>
+const DD = "https://ddragon.leagueoflegends.com";
+const MIN_MATCHUP = 8;              // mínimo de jogos para aparecer em counters/matchups
+const ROLES = {TOP:"Topo", JUNGLE:"Selva", MIDDLE:"Meio", BOTTOM:"Atirador", UTILITY:"Suporte"};
+let V, CH = {}, IT = {}, DB = {}, cur, role;
+const $ = id => document.getElementById(id);
+const chImg = id => `${DD}/cdn/${V}/img/champion/${id}.png`;
+const itImg = id => `${DD}/cdn/${V}/img/item/${id}.png`;
+const pct = (w, g) => (100 * w / g).toFixed(1) + "%";
+
+async function init() {
+  try {
+    V = (await (await fetch(DD + "/api/versions.json")).json())[0];
+    const [c, i] = await Promise.all([
+      fetch(`${DD}/cdn/${V}/data/pt_BR/champion.json`).then(r => r.json()),
+      fetch(`${DD}/cdn/${V}/data/pt_BR/item.json`).then(r => r.json())
+    ]);
+    CH = c.data; IT = i.data;
+  } catch (e) { $("msg").textContent = "Não consegui carregar os dados da Riot. Verifique a conexão."; return; }
+  try { DB = (await (await fetch("data.json")).json()).agg || {}; } catch (e) { DB = {}; }
+  cur = Object.keys(CH)[0];
+  pick(cur);
+}
+function pick(id) {
+  cur = id;
+  const roles = Object.entries(DB[id] || {}).sort((a, b) => b[1].g - a[1].g).map(([r]) => r);
+  role = roles[0];
+  renderGrid(); renderView(roles);
+}
+function renderGrid() {
+  const t = $("q").value.trim().toLowerCase();
+  $("grid").innerHTML = Object.values(CH).filter(c => c.name.toLowerCase().includes(t))
+    .map(c => `<button data-id="${c.id}" title="${c.name}" aria-label="${c.name}" aria-pressed="${c.id === cur}"><img loading="lazy" src="${chImg(c.id)}" alt=""></button>`).join("");
+}
+function mu(list, cls) {
+  if (!list.length) return `<p class="hint">Sem jogos suficientes ainda.</p>`;
+  return `<div class="mu">${list.map(([n, [g, w]]) => {
+    const c = CH[n]; if (!c) return "";
+    return `<div class="chip"><img src="${chImg(c.id)}" alt="">${c.name}<small>${g} jogos</small><span class="wr">${pct(w, g)}</span></div>`;
+  }).join("")}</div>`;
+}
+function renderView(roles) {
+  const c = CH[cur];
+  let html = `<header><img src="${chImg(c.id)}" alt=""><div><h1>${c.name}</h1><p class="sub">${c.title}</p></div></header>`;
+  const d = role && DB[cur][role];
+  if (!d) { $("view").innerHTML = html + `<p class="hint" style="margin-top:20px">Estatísticas (build, counters e matchups) ainda não carregadas: falta o arquivo data.json.</p><div id="extra"></div>`; loadExtra(cur); return; }
+  const items = Object.entries(d.i).sort((a, b) => b[1] - a[1]).filter(([id]) => IT[id]).slice(0, 8);
+  const opps = Object.entries(d.o).filter(([, [g]]) => g >= MIN_MATCHUP).sort((a, b) => a[1][1] / a[1][0] - b[1][1] / b[1][0]);
+  html += `<div class="roles">${roles.map(r => `<button data-role="${r}" aria-pressed="${r === role}">${ROLES[r] || r}</button>`).join("")}</div>
+  <p class="hint" style="margin-top:10px">${d.g} partidas · ${pct(d.w, d.g)} de vitória</p>
+  <section><h2>Build mais usada</h2><div class="list">${items.map(([id, n]) => `<div class="chip"><img src="${itImg(id)}" alt="">${IT[id].name}<small>${pct(n, d.g)}</small></div>`).join("")}</div></section>
+  <div class="cols">
+    <section class="bad"><h2>Counters (menor % de vitória contra)</h2>${mu(opps.slice(0, 5), "bad")}</section>
+    <section class="good"><h2>Matchups bons (maior % de vitória contra)</h2>${mu(opps.slice(-5).reverse(), "good")}</section>
+  </div>`;
+  $("view").innerHTML = html + `<div id="extra"></div>`;
+  loadExtra(cur);
+}
+const CACHE = {};
+async function loadExtra(id) {
+  try {
+    const d = CACHE[id] || (CACHE[id] = (await (await fetch(`${DD}/cdn/${V}/data/pt_BR/champion/${id}.json`)).json()).data[id]);
+    const el = $("extra"); if (!el || id !== cur) return;
+    const strip = s => s.replace(/<br\s*\/?>/g, " ").replace(/<[^>]+>/g, "");
+    const li = a => a.map(t => `<li>${t}</li>`).join("");
+    const sp = [["Passiva", d.passive, "passive"], ...d.spells.map((s, i) => ["QWER"[i], s, "spell"])];
+    el.innerHTML = `<div class="cols">
+      <section class="good"><h2>Dicas para jogar de ${d.name}</h2><ul class="tips">${li(d.allytips)}</ul></section>
+      <section class="bad"><h2>Dicas para jogar contra ${d.name}</h2><ul class="tips">${li(d.enemytips)}</ul></section></div>
+      <section><h2>Habilidades</h2>${sp.map(([k, s, t]) => `<div class="sp"><img src="${DD}/cdn/${V}/img/${t}/${s.image.full}" alt=""><div><b>${k} · ${s.name}</b><span>${strip(s.description)}</span></div></div>`).join("")}</section>`;
+  } catch (e) {}
+}
+$("q").oninput = renderGrid;
+$("grid").onclick = e => { const b = e.target.closest("button"); if (b) { pick(b.dataset.id); window.scrollTo(0, 0); } };
+$("view").onclick = e => { const b = e.target.closest("[data-role]"); if (b) { role = b.dataset.role; renderView(Object.keys(DB[cur]).sort((x, y) => DB[cur][y].g - DB[cur][x].g)); } };
+init();
+</script>
+</body>
+</html>
