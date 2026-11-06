@@ -11,7 +11,10 @@ Coloque o data.json na mesma pasta do meu-lol.html.
 """
 import os, sys, json, time, urllib.request, urllib.error
 
-KEY = os.environ.get("RIOT_KEY") or sys.exit("Defina a variavel RIOT_KEY.")
+KEY = (os.environ.get("RIOT_KEY") or "").strip().strip('"').strip("'")
+if not KEY:
+    sys.exit("Defina a variavel RIOT_KEY.")
+print(f"Chave lida: {len(KEY)} caracteres, comeca com RGAPI-: {KEY.startswith('RGAPI-')} (o normal sao 42 caracteres)")
 PLAT, REG = "br1", "americas"          # servidor BR
 TIERS, DIVS, PAGES = ["EMERALD", "DIAMOND"], ["I", "II", "III", "IV"], 2
 PER_PLAYER = 10                         # partidas recentes por jogador
@@ -22,7 +25,7 @@ OUT = "data.json"
 
 def get(url, headers=None):
     while True:
-        req = urllib.request.Request(url, headers=headers or {"X-Riot-Token": KEY})
+        req = urllib.request.Request(url, headers={"X-Riot-Token": KEY} if headers is None else headers)
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 time.sleep(PAUSE if headers is None else 0)
@@ -32,7 +35,7 @@ def get(url, headers=None):
                 time.sleep(int(e.headers.get("Retry-After", "10")) + 1)
                 continue
             if e.code in (401, 403):
-                sys.exit("Chave invalida ou expirada. Gere outra no portal da Riot.")
+                sys.exit(f"Erro {e.code} da Riot em {url.split('?')[0]}. Chave invalida ou expirada: gere outra no portal da Riot e atualize o segredo RIOT_KEY.")
             return None
         except Exception:
             time.sleep(5)
