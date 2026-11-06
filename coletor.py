@@ -25,7 +25,7 @@ OUT = "data.json"
 
 def get(url, headers=None):
     while True:
-        req = urllib.request.Request(url, headers={"X-Riot-Token": KEY} if headers is None else headers)
+        req = urllib.request.Request(url, headers={"X-Riot-Token": KEY, "User-Agent": "meu-lol/1.0"} if headers is None else headers)
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 time.sleep(PAUSE if headers is None else 0)
