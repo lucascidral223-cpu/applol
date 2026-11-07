@@ -12,17 +12,18 @@ body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.5 system-ui
 .wrap{max-width:900px;margin:0 auto;padding:20px 16px 48px}
 input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;width:100%}
 button{font:600 14px system-ui,sans-serif;color:var(--text);background:var(--chip);border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
-button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-#grid{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow-y:auto;margin:12px 0 28px;padding:2px}
+button:focus-visible,input:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+#grid{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow-y:auto;margin:12px 0 24px;padding:2px}
 #grid button{padding:0;border-radius:8px;width:48px;height:48px;overflow:hidden}
-#grid button[aria-pressed="true"]{outline:2px solid var(--gold)}
+#grid button.sel{outline:2px solid var(--gold)}
 #grid img{width:100%;height:100%;display:block}
 header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 header img{width:84px;height:84px;border-radius:12px}
 h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1;margin:0;letter-spacing:-.02em}
 .sub{color:var(--muted);margin:4px 0 0}
 .roles{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
-.roles button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
 section{margin-top:28px}
 h2{font-size:1.05rem;margin:0 0 12px}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
@@ -31,32 +32,45 @@ h2{font-size:1.05rem;margin:0 0 12px}
 .chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 10px 4px 4px;font-weight:600;font-size:14px}
 .chip img{width:36px;height:36px;border-radius:6px}
 .chip small{color:var(--muted);font-weight:400}
-.bad h2{color:var(--bad)}.good h2{color:var(--good)}
 .mu{display:flex;flex-direction:column;gap:6px}
-.mu .chip{justify-content:flex-start}
+.mu .chip{cursor:pointer}.mu .chip:hover{border-color:var(--gold)}
 .mu .wr{margin-left:auto;font-weight:800}
+.bad h2{color:var(--bad)}.good h2{color:var(--good)}
 .bad .wr{color:var(--bad)}.good .wr{color:var(--good)}
 .tips{margin:0;padding-left:18px}.tips li{margin-bottom:8px}
 .sp{display:flex;gap:12px;margin-bottom:14px}.sp img{width:44px;height:44px;border-radius:8px;flex:none}
 .sp b{display:block}.sp span{color:var(--muted);font-size:14px}
+.slots{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.slot{display:flex;align-items:center;gap:10px;border-radius:12px;padding:8px 14px 8px 8px;text-align:left;border:2px solid transparent;background:var(--surface);color:var(--text);min-width:170px}
+.slot[aria-pressed="true"]{background:var(--surface);color:var(--text);border-color:var(--gold)}
+.slot img{width:52px;height:52px;border-radius:8px}
+.slot small{display:block;color:var(--muted);font-weight:400}
+.verdict{border-left:4px solid var(--line);padding:4px 0 4px 14px}
+.verdict.good{border-color:var(--good)}.verdict.bad{border-color:var(--bad)}
+.verdict b{font-size:1.25rem;display:block}
 .hint,#msg{color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
 <main class="wrap">
+  <div class="tabs"><button id="tabC">Campeão</button><button id="tabM">Matchup</button></div>
   <input id="q" placeholder="Buscar campeão…" aria-label="Buscar campeão" autocomplete="off">
   <div id="grid"></div>
   <div id="view"><p id="msg">Carregando…</p></div>
 </main>
 <script>
 const DD = "https://ddragon.leagueoflegends.com";
-const MIN_MATCHUP = 8;              // mínimo de jogos para aparecer em counters/matchups
+const MIN = 3, SMALL = 8;
 const ROLES = {TOP:"Topo", JUNGLE:"Selva", MIDDLE:"Meio", BOTTOM:"Atirador", UTILITY:"Suporte"};
-let V, CH = {}, IT = {}, DB = {}, cur, role;
+let V, CH = {}, IT = {}, DB = {}, mode = "champ", cur, role, me = null, foe = null, target = "me", mrole;
+const CACHE = {};
 const $ = id => document.getElementById(id);
 const chImg = id => `${DD}/cdn/${V}/img/champion/${id}.png`;
 const itImg = id => `${DD}/cdn/${V}/img/item/${id}.png`;
 const pct = (w, g) => (100 * w / g).toFixed(1) + "%";
+const li = a => a.map(t => `<li>${t}</li>`).join("");
+const rolesOf = id => Object.entries(DB[id] || {}).sort((a, b) => b[1].g - a[1].g).map(([r]) => r);
+async function detail(id) { return CACHE[id] || (CACHE[id] = (await (await fetch(`${DD}/cdn/${V}/data/pt_BR/champion/${id}.json`)).json()).data[id]); }
 
 async function init() {
   try {
@@ -69,50 +83,55 @@ async function init() {
   } catch (e) { $("msg").textContent = "Não consegui carregar os dados da Riot. Verifique a conexão."; return; }
   try { DB = (await (await fetch("data.json")).json()).agg || {}; } catch (e) { DB = {}; }
   cur = Object.keys(CH)[0];
-  pick(cur);
+  render();
 }
-function pick(id) {
-  cur = id;
-  const roles = Object.entries(DB[id] || {}).sort((a, b) => b[1].g - a[1].g).map(([r]) => r);
-  role = roles[0];
-  renderGrid(); renderView(roles);
+function render() {
+  $("tabC").setAttribute("aria-pressed", mode === "champ");
+  $("tabM").setAttribute("aria-pressed", mode === "match");
+  renderGrid();
+  mode === "champ" ? champView() : matchView();
 }
 function renderGrid() {
   const t = $("q").value.trim().toLowerCase();
+  const sel = mode === "champ" ? [cur] : [me, foe];
   $("grid").innerHTML = Object.values(CH).filter(c => c.name.toLowerCase().includes(t))
-    .map(c => `<button data-id="${c.id}" title="${c.name}" aria-label="${c.name}" aria-pressed="${c.id === cur}"><img loading="lazy" src="${chImg(c.id)}" alt=""></button>`).join("");
+    .map(c => `<button data-id="${c.id}" title="${c.name}" aria-label="${c.name}" class="${sel.includes(c.id) ? "sel" : ""}"><img loading="lazy" src="${chImg(c.id)}" alt=""></button>`).join("");
 }
+function topItems(obj, n) { return Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).filter(([id]) => IT[id]).slice(0, n); }
+function itemChips(list, total) { return `<div class="list">${list.map(([id, k]) => `<div class="chip"><img src="${itImg(id)}" alt="">${IT[id].name}<small>${pct(k, total)}</small></div>`).join("")}</div>`; }
 function mu(list, cls) {
-  if (!list.length) return `<p class="hint">Sem jogos suficientes ainda.</p>`;
-  return `<div class="mu">${list.map(([n, [g, w]]) => {
+  if (!list.length) return `<p class="hint">Nenhum confronto registrado ainda.</p>`;
+  return `<div class="mu">${list.map(([n, x]) => {
     const c = CH[n]; if (!c) return "";
-    return `<div class="chip"><img src="${chImg(c.id)}" alt="">${c.name}<small>${g} jogos</small><span class="wr">${pct(w, g)}</span></div>`;
+    return `<div class="chip" role="button" tabindex="0" data-foe="${n}" title="Ver matchup"><img src="${chImg(c.id)}" alt="">${c.name}<small>${x[0]} jogos${x[0] < SMALL ? " · amostra pequena" : ""}</small><span class="wr">${pct(x[1], x[0])}</span></div>`;
   }).join("")}</div>`;
 }
-function renderView(roles) {
-  const c = CH[cur];
-  let html = `<header><img src="${chImg(c.id)}" alt=""><div><h1>${c.name}</h1><p class="sub">${c.title}</p></div></header>`;
+
+/* ---------- Modo campeão ---------- */
+function champView() {
+  const c = CH[cur], rs = rolesOf(cur);
+  if (!rs.includes(role)) role = rs[0];
+  let h = `<header><img src="${chImg(c.id)}" alt=""><div><h1>${c.name}</h1><p class="sub">${c.title}</p></div></header>`;
   const d = role && DB[cur][role];
-  if (!d) { $("view").innerHTML = html + `<p class="hint" style="margin-top:20px">Estatísticas (build, counters e matchups) ainda não carregadas: falta o arquivo data.json.</p><div id="extra"></div>`; loadExtra(cur); return; }
-  const items = Object.entries(d.i).sort((a, b) => b[1] - a[1]).filter(([id]) => IT[id]).slice(0, 8);
-  const opps = Object.entries(d.o).filter(([, [g]]) => g >= MIN_MATCHUP).sort((a, b) => a[1][1] / a[1][0] - b[1][1] / b[1][0]);
-  html += `<div class="roles">${roles.map(r => `<button data-role="${r}" aria-pressed="${r === role}">${ROLES[r] || r}</button>`).join("")}</div>
+  if (!d) { $("view").innerHTML = h + `<p class="hint" style="margin-top:20px">Ainda sem partidas deste campeão na base. Rode a coleta mais vezes.</p><div id="extra"></div>`; loadExtra(cur); return; }
+  const opps = Object.entries(d.o).filter(([, x]) => x[0] >= MIN);
+  const wr = x => x[1] / x[0];
+  const bad = opps.filter(([, x]) => wr(x) < .5).sort((a, b) => wr(a[1]) - wr(b[1])).slice(0, 6);
+  const good = opps.filter(([, x]) => wr(x) >= .5).sort((a, b) => wr(b[1]) - wr(a[1])).slice(0, 6);
+  h += `<div class="roles">${rs.map(r => `<button data-role="${r}" aria-pressed="${r === role}">${ROLES[r] || r}</button>`).join("")}</div>
   <p class="hint" style="margin-top:10px">${d.g} partidas · ${pct(d.w, d.g)} de vitória</p>
-  <section><h2>Build mais usada</h2><div class="list">${items.map(([id, n]) => `<div class="chip"><img src="${itImg(id)}" alt="">${IT[id].name}<small>${pct(n, d.g)}</small></div>`).join("")}</div></section>
+  <section><h2>Build mais usada</h2>${itemChips(topItems(d.i, 8), d.g)}</section>
   <div class="cols">
-    <section class="bad"><h2>Counters (menor % de vitória contra)</h2>${mu(opps.slice(0, 5), "bad")}</section>
-    <section class="good"><h2>Matchups bons (maior % de vitória contra)</h2>${mu(opps.slice(-5).reverse(), "good")}</section>
-  </div>`;
-  $("view").innerHTML = html + `<div id="extra"></div>`;
-  loadExtra(cur);
+    <section class="bad"><h2>Counters (menor % de vitória contra)</h2>${mu(bad)}</section>
+    <section class="good"><h2>Matchups bons (maior % de vitória contra)</h2>${mu(good)}</section>
+  </div>
+  <p class="hint">Toque em um campeão da lista para abrir o matchup.</p><div id="extra"></div>`;
+  $("view").innerHTML = h; loadExtra(cur);
 }
-const CACHE = {};
 async function loadExtra(id) {
   try {
-    const d = CACHE[id] || (CACHE[id] = (await (await fetch(`${DD}/cdn/${V}/data/pt_BR/champion/${id}.json`)).json()).data[id]);
-    const el = $("extra"); if (!el || id !== cur) return;
+    const d = await detail(id), el = $("extra"); if (!el || id !== cur || mode !== "champ") return;
     const strip = s => s.replace(/<br\s*\/?>/g, " ").replace(/<[^>]+>/g, "");
-    const li = a => a.map(t => `<li>${t}</li>`).join("");
     const sp = [["Passiva", d.passive, "passive"], ...d.spells.map((s, i) => ["QWER"[i], s, "spell"])];
     el.innerHTML = `<div class="cols">
       <section class="good"><h2>Dicas para jogar de ${d.name}</h2><ul class="tips">${li(d.allytips)}</ul></section>
@@ -120,9 +139,79 @@ async function loadExtra(id) {
       <section><h2>Habilidades</h2>${sp.map(([k, s, t]) => `<div class="sp"><img src="${DD}/cdn/${V}/img/${t}/${s.image.full}" alt=""><div><b>${k} · ${s.name}</b><span>${strip(s.description)}</span></div></div>`).join("")}</section>`;
   } catch (e) {}
 }
+
+/* ---------- Modo matchup ---------- */
+function laneTips(a, b) {
+  const A = CH[a], B = CH[b], out = [], dr = A.stats.attackrange - B.stats.attackrange;
+  if (dr >= 100) out.push(`Você tem mais alcance que ${B.name}: troque de longe e puna quando ele tentar chegar perto.`);
+  else if (dr <= -100) out.push(`${B.name} tem mais alcance: não fique no alcance dele sem motivo e entre nas trocas quando ele gastar habilidades.`);
+  if (B.tags.includes("Assassin")) out.push(`${B.name} é assassino: guarde sua fuga ou defesa e tome cuidado com o nível 6.`);
+  if (B.tags.includes("Tank")) out.push(`${B.name} é tanque: ele tem pouco dano para te punir, então foque em farm e em não ceder a wave.`);
+  if (B.tags.includes("Mage")) out.push(`${B.name} é mago: desvie das habilidades principais e puna quando elas estiverem em recarga.`);
+  return out.slice(0, 3);
+}
+function verdict(m) {
+  const [g, w, , csd = 0, sod = 0, lvd = 0, n = 0] = m, r = w / g, notes = [];
+  let t, a, c = "";
+  if (r >= .53) { c = "good"; t = "Você ganha a rota"; a = "Pode agressivar: pressione, troque quando tiver vantagem de nível ou de wave e tente dominar a lane."; }
+  else if (r <= .47) { c = "bad"; t = "O inimigo ganha a rota"; a = "Respeite: priorize farm seguro, evite trocas sem vantagem e peça ajuda do jungle."; }
+  else { t = "Rota equilibrada"; a = "Jogue pelo farm e pelo controle da wave, e só troque quando tiver certeza de que ganha."; }
+  if (n >= 5) {
+    const k = csd / n, l = lvd / n, s = sod / n;
+    if (Math.abs(k) >= 2) notes.push(k > 0 ? `Você costuma abrir mais vantagem de CS (cerca de +${k.toFixed(0)}).` : `Ele costuma abrir mais vantagem de CS (cerca de +${(-k).toFixed(0)}).`);
+    if (Math.abs(l) >= .3) notes.push(l > 0 ? "Você costuma ficar na frente em nível." : "Ele costuma ficar na frente em nível.");
+    if (Math.abs(s) >= .2) notes.push(s > 0 ? "Você faz mais abates solo na rota." : "Ele faz mais abates solo na rota.");
+  }
+  if (g < SMALL) notes.push(`Amostra pequena (${g} jogos): trate como palpite.`);
+  return `<div class="verdict ${c}"><b>${t} · ${pct(w, g)} de vitória em ${g} jogos</b>${a}${notes.length ? `<ul class="tips" style="margin-top:8px">${li(notes)}</ul>` : ""}</div>`;
+}
+function matchView() {
+  const slot = (k, label, id) => `<button class="slot" data-target="${k}" aria-pressed="${target === k}">${id ? `<img src="${chImg(id)}" alt=""><span><small>${label}</small>${CH[id].name}</span>` : `<span><small>${label}</small>Escolher…</span>`}</button>`;
+  let h = `<div class="slots">${slot("me", "Meu campeão", me)}<button id="swap" aria-label="Trocar">⇄</button>${slot("foe", "Campeão inimigo", foe)}</div>`;
+  if (!me || !foe) { $("view").innerHTML = h + `<p class="hint" style="margin-top:20px">Toque em um campeão da lista para escolher o seu e depois o inimigo.</p>`; return; }
+  const mine = rolesOf(me), withM = mine.filter(r => DB[me][r].o[foe]), rs = withM.length ? withM : mine;
+  if (!rs.includes(mrole)) mrole = rs[0];
+  const d = mrole && DB[me][mrole], m = d && d.o[foe];
+  if (rs.length > 1) h += `<div class="roles">${rs.map(r => `<button data-mrole="${r}" aria-pressed="${r === mrole}">${ROLES[r] || r}</button>`).join("")}</div>`;
+  if (m) {
+    const n = m[6] || 0, own = n >= 3 && topItems(m[2], 6).length;
+    h += `<section>${verdict(m)}</section>
+    <section><h2>Build para este matchup</h2>${own ? itemChips(topItems(m[2], 6), n) + `<p class="hint" style="margin-top:8px">Baseada em ${n} partidas deste confronto.</p>` : (d ? itemChips(topItems(d.i, 6), d.g) + `<p class="hint" style="margin-top:8px">Poucas partidas deste confronto com detalhes ainda: mostrando a build geral do ${CH[me].name}.</p>` : "")}</section>`;
+  } else {
+    h += `<section><p class="hint">Ainda não há partidas registradas deste confronto${mrole ? "" : " nem do seu campeão"}. Rode a coleta mais vezes para preencher. Enquanto isso, veja as dicas abaixo.</p></section>`;
+    if (d) h += `<section><h2>Build geral</h2>${itemChips(topItems(d.i, 6), d.g)}</section>`;
+  }
+  const lt = laneTips(me, foe);
+  h += `${lt.length ? `<section><h2>Dicas da rota</h2><ul class="tips">${li(lt)}</ul></section>` : ""}<div id="mtips"></div>`;
+  $("view").innerHTML = h;
+  Promise.all([detail(me), detail(foe)]).then(([a, b]) => {
+    const el = $("mtips"); if (!el || mode !== "match" || a.id !== me || b.id !== foe) return;
+    el.innerHTML = `<div class="cols"><section class="good"><h2>Como jogar de ${a.name}</h2><ul class="tips">${li(a.allytips)}</ul></section>
+      <section class="bad"><h2>Como jogar contra ${b.name}</h2><ul class="tips">${li(b.enemytips)}</ul></section></div>`;
+  }).catch(() => {});
+}
+
+/* ---------- Eventos ---------- */
 $("q").oninput = renderGrid;
-$("grid").onclick = e => { const b = e.target.closest("button"); if (b) { pick(b.dataset.id); window.scrollTo(0, 0); } };
-$("view").onclick = e => { const b = e.target.closest("[data-role]"); if (b) { role = b.dataset.role; renderView(Object.keys(DB[cur]).sort((x, y) => DB[cur][y].g - DB[cur][x].g)); } };
+$("tabC").onclick = () => { mode = "champ"; render(); };
+$("tabM").onclick = () => { mode = "match"; render(); };
+$("grid").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = b.dataset.id;
+  if (mode === "champ") { cur = id; role = null; window.scrollTo(0, 0); }
+  else if (target === "me") { me = id; target = "foe"; }
+  else { foe = id; }
+  render();
+};
+$("view").onclick = e => {
+  const t = e.target.closest("[data-role],[data-mrole],[data-foe],[data-target],#swap"); if (!t) return;
+  if (t.dataset.role) role = t.dataset.role;
+  else if (t.dataset.mrole) mrole = t.dataset.mrole;
+  else if (t.dataset.foe) { me = cur; foe = t.dataset.foe; mrole = role; mode = "match"; window.scrollTo(0, 0); }
+  else if (t.dataset.target) target = t.dataset.target;
+  else if (t.id === "swap") [me, foe] = [foe, me];
+  render();
+};
 init();
 </script>
 </body>
