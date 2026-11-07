@@ -74,9 +74,22 @@ def process(m):
                 a["i"][iid] = a["i"].get(iid, 0) + 1
         opp = by.get((role, 300 - team))
         if opp:
-            o = a["o"].setdefault(opp["championName"], [0, 0])
+            # o = [jogos, vitorias, itens, dif_cs, dif_abates_solo, dif_nivel, jogos_com_detalhe]
+            o = a["o"].setdefault(opp["championName"], [0, 0, {}, 0, 0, 0, 0])
+            if len(o) < 7:  # dados antigos so tinham [jogos, vitorias]
+                o += [{}, 0, 0, 0, 0]
             o[0] += 1
             o[1] += int(p["win"])
+            ch, oc = p.get("challenges") or {}, opp.get("challenges") or {}
+            dif = lambda k: (ch.get(k) or 0) - (oc.get(k) or 0)
+            o[3] += dif("maxCsAdvantageOnLaneOpponent")
+            o[4] += dif("soloKills")
+            o[5] += dif("maxLevelLeadLaneOpponent")
+            o[6] += 1
+            for k in range(6):
+                iid = str(p[f"item{k}"])
+                if iid in FINAL:
+                    o[2][iid] = o[2].get(iid, 0) + 1
     return True
 
 
