@@ -74,7 +74,7 @@ header img{width:84px;height:84px;border-radius:18px}
 const DD = "https://ddragon.leagueoflegends.com";
 const MIN = 3, SMALL = 8;
 const ROLES = {TOP:"Topo", JUNGLE:"Selva", MIDDLE:"Meio", BOTTOM:"Atirador", UTILITY:"Suporte"};
-let V, CH = {}, IT = {}, DB = {}, mode = "champ", cur, role, me = null, foe = null, target = "me", mrole, onlyTop = true, compact = false;
+let V, CH = {}, IT = {}, DB = {}, SM = {}, mode = "champ", cur, role, me = null, foe = null, target = "me", mrole, onlyTop = true, compact = false;
 const CACHE = {};
 const $ = id => document.getElementById(id);
 const chImg = id => `${DD}/cdn/${V}/img/champion/${id}.png`;
@@ -159,6 +159,7 @@ async function init() {
       fetch(`${DD}/cdn/${V}/data/pt_BR/item.json`).then(r => r.json())
     ]);
     CH = c.data; IT = i.data;
+    try { SM = (await (await fetch(`${DD}/cdn/${V}/data/pt_BR/summoner.json`)).json()).data; } catch (e) {}
   } catch (e) { $("msg").textContent = "Não consegui carregar os dados da Riot. Verifique a conexão."; return; }
   try { DB = (await (await fetch("data.json")).json()).agg || {}; } catch (e) { DB = {}; }
   cur = AR.Darius && CH.Darius ? "Darius" : Object.keys(CH)[0];
@@ -243,6 +244,30 @@ function statsHtml(a, b) {
   return `<div class="stats">${rows.map(([n, k]) => `<span class="${A[k] > B[k] ? "good" : ""}"><b>${Math.round(A[k])}</b></span><span>${n}</span><span class="${B[k] > A[k] ? "good" : ""}"><b>${Math.round(B[k])}</b></span>`).join("")}</div>`;
 }
 
+/* ---------- Feitiços de invocador ---------- */
+const SMN = { flash: "SummonerFlash", tp: "SummonerTeleport", ign: "SummonerDot", ghost: "SummonerHaste", bar: "SummonerBarrier", cleanse: "SummonerBoost", exh: "SummonerExhaust" };
+function summCard(a, b, P) {
+  const kb = kit(b), ar = archOf(a.id), fr = archOf(b.id), A = CH[a.id], B = CH[b.id];
+  const heals = kb.some(x => x.tags.some(([k]) => k === "heal")), ccs = kb.filter(x => x.hard).length, melee = A.stats.attackrange < 250;
+  let main, alt;
+  if (P.side === "up" && (ar === "bruiser" || ar === "skirm")) {
+    main = ["ign", "Você leva vantagem e quer matar a rota: o Ignite dá dano extra para fechar o abate e reduz a cura do inimigo."];
+    alt = ["tp", "Se a rota ficar equilibrada ou o inimigo recuar, o Teleporte rende mais no mapa."];
+  } else {
+    main = ["tp", "O padrão no topo: o Teleporte deixa você voltar à rota sem perder tanto farm e ajuda em objetivos e lutas."];
+    alt = heals ? ["ign", `${B.name} tem cura: o Ignite reduz a cura recebida e ajuda a fechar abates.`]
+      : fr === "ranged" && melee ? ["ghost", `${B.name} te cutuca de longe: o Fantasma ajuda a alcançar e a escapar do poke.`]
+      : ccs >= 2 ? ["cleanse", `${B.name} tem bastante controle de grupo: Purificar tira o efeito na hora certa.`]
+      : fr === "skirm" ? ["bar", `${B.name} tem muito burst: a Barreira ajuda a sobreviver ao all-in.`]
+      : P.side === "down" ? ["exh", "Se a rota é difícil e o inimigo te caça, a Exaustão reduz o dano e a velocidade dele."]
+      : ["ign", "O Ignite é a alternativa quando você quer mais pressão na rota."];
+  }
+  const nm = k => (SM[SMN[k]] || {}).name || SMN[k];
+  const ic = k => SM[SMN[k]] ? `<img src="${DD}/cdn/${V}/img/spell/${SM[SMN[k]].image.full}" alt="">` : "";
+  const row = ([k, why], tag) => `<div style="margin-bottom:14px"><p class="eyebrow" style="margin-bottom:6px">${tag}</p><div class="list"><div class="chip">${ic("flash")}${nm("flash")}</div><div class="chip">${ic(k)}${nm(k)}</div></div><p style="margin:8px 0 0">${why}</p></div>`;
+  return `<div class="card"><p class="eyebrow">Feitiços de invocador</p>${row(main, "Recomendado")}${row(alt, "Alternativa")}<p class="hint">Sugestão automática pelo estilo dos campeões e pelas habilidades. O Flash quase sempre entra.</p></div>`;
+}
+
 /* ---------- Modo matchup ---------- */
 function matchView() {
   const slot = (k, label, id) => `<button class="slot" data-target="${k}" aria-pressed="${target === k}">${id ? `<img src="${chImg(id)}" alt=""><span><small>${label}</small>${CH[id].name}</span>` : `<span><small>${label}</small>Escolher…</span>`}</button>`;
@@ -271,7 +296,7 @@ function matchView() {
   Promise.all([detail(me), detail(foe)]).then(([a, b]) => {
     const el = $("mtips"); if (!el || mode !== "match" || a.id !== me || b.id !== foe) return;
     const an = analysis(a, b);
-    el.innerHTML = `<div class="card"><p class="eyebrow">Habilidades no confronto</p>${an.window ? `<p style="margin-top:0">${an.window}</p>` : ""}
+    el.innerHTML = `${summCard(a, b, P)}<div class="card"><p class="eyebrow">Habilidades no confronto</p>${an.window ? `<p style="margin-top:0">${an.window}</p>` : ""}
       <div class="cols"><div><b>O que ${b.name} pode fazer</b><ul class="t" style="margin-top:10px">${li(an.foe)}</ul></div><div><b>O que você pode fazer</b><ul class="t" style="margin-top:10px">${li(an.mine)}</ul></div></div>
       <p class="hint">Análise automática, lida dos textos das habilidades. Confira no jogo se algo parecer estranho.</p></div>
       <div class="card"><p class="eyebrow">Atributos base no nível 1</p>${statsHtml(me, foe)}</div>
