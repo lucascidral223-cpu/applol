@@ -48,6 +48,8 @@ h2{font-size:1.05rem;margin:0 0 12px}
 .verdict{border-left:4px solid var(--line);padding:4px 0 4px 14px}
 .verdict.good{border-color:var(--good)}.verdict.bad{border-color:var(--bad)}
 .verdict b{font-size:1.25rem;display:block}
+.stats{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:6px 10px;text-align:center;max-width:440px}
+.stats span.good b{color:var(--good)}.stats span:nth-child(3n+2){color:var(--muted);font-size:14px}
 .hint,#msg{color:var(--muted);font-size:14px}
 </style>
 </head>
@@ -178,7 +180,7 @@ function matchView() {
     h += `<section>${verdict(m)}</section>
     <section><h2>Build para este matchup</h2>${own ? itemChips(topItems(m[2], 6), n) + `<p class="hint" style="margin-top:8px">Baseada em ${n} partidas deste confronto.</p>` : (d ? itemChips(topItems(d.i, 6), d.g) + `<p class="hint" style="margin-top:8px">Poucas partidas deste confronto com detalhes ainda: mostrando a build geral do ${CH[me].name}.</p>` : "")}</section>`;
   } else {
-    h += `<section><p class="hint">Ainda não há partidas registradas deste confronto${mrole ? "" : " nem do seu campeão"}. Rode a coleta mais vezes para preencher. Enquanto isso, veja as dicas abaixo.</p></section>`;
+    h += `<section><p class="hint">Sem estatísticas de partidas para este confronto (isso é opcional). A análise das habilidades abaixo funciona sem elas.</p></section>`;
     if (d) h += `<section><h2>Build geral</h2>${itemChips(topItems(d.i, 6), d.g)}</section>`;
   }
   const lt = laneTips(me, foe);
@@ -186,9 +188,54 @@ function matchView() {
   $("view").innerHTML = h;
   Promise.all([detail(me), detail(foe)]).then(([a, b]) => {
     const el = $("mtips"); if (!el || mode !== "match" || a.id !== me || b.id !== foe) return;
-    el.innerHTML = `<div class="cols"><section class="good"><h2>Como jogar de ${a.name}</h2><ul class="tips">${li(a.allytips)}</ul></section>
+    const an = analysis(a, b);
+    el.innerHTML = `${statsHtml(me, foe)}
+      <section><h2>Habilidades no confronto</h2>${an.window ? `<p>${an.window}</p>` : ""}
+      <div class="cols"><div class="bad"><h2>O que ${b.name} pode fazer</h2><ul class="tips">${li(an.foe)}</ul></div>
+      <div class="good"><h2>O que você pode fazer</h2><ul class="tips">${li(an.mine)}</ul></div></div>
+      <p class="hint">Análise automática, lida dos textos das habilidades. Confira no jogo se algo parecer estranho.</p></section>
+      <div class="cols"><section class="good"><h2>Como jogar de ${a.name}</h2><ul class="tips">${li(a.allytips)}</ul></section>
       <section class="bad"><h2>Como jogar contra ${b.name}</h2><ul class="tips">${li(b.enemytips)}</ul></section></div>`;
   }).catch(() => {});
+}
+
+/* ---------- Análise de habilidades ---------- */
+const TAGS = [
+  ["stun", /atordo/, "atordoa"], ["root", /enra[ií]z|imobiliz|prende/, "prende no lugar"], ["air", /derrub|arremess|ao ar/, "lança para o ar"],
+  ["silence", /silenc/, "silencia"], ["fear", /medo|aterroriz/, "causa medo"], ["taunt", /provoc/, "provoca"], ["charm", /encant|enfeiti/, "enfeitiça"],
+  ["pull", /\bpux/, "puxa"], ["slow", /lentid|reduz[^.]*velocidade de movimento/, "deixa lento"],
+  ["dash", /avan[çc]a|investe|salta|pula|teletransport|impuls/, "dá um avanço"], ["shield", /escudo/, "dá escudo"],
+  ["heal", /\bcura|restaura/, "cura"], ["immune", /invulner|intang|n[ãa]o pode ser alvo/, "ganha imunidade"]
+];
+const HARD = ["stun", "root", "air", "silence", "fear", "taunt", "charm", "pull"], KEYS = ["Q", "W", "E", "R"];
+function kit(d) {
+  return d.spells.map((s, i) => {
+    const txt = s.description.replace(/<[^>]+>/g, " ").toLowerCase();
+    const tags = TAGS.filter(([, re]) => re.test(txt)).map(([k, , l]) => [k, l]);
+    return { k: KEYS[i], name: s.name, tags, hard: tags.some(([k]) => HARD.includes(k)), dash: tags.some(([k]) => k === "dash"),
+      cd1: parseFloat((s.cooldown || [])[0]) || 0, cd: s.cooldownBurn || "", range: /^\d+$/.test(s.rangeBurn || "") ? s.rangeBurn : "" };
+  });
+}
+const lbl = x => x.tags.map(([, l]) => l).join(", ");
+const meta = x => `(recarga ${x.cd}s${x.range ? `, alcance ${x.range}` : ""})`;
+function analysis(a, b) {
+  const ka = kit(a), kb = kit(b), ra = ka[3], rb = kb[3], foe = [], mine = [];
+  const cc = kb.filter(x => x.hard && x.k !== "R"), esc = kb.filter(x => x.dash && !x.hard && x.k !== "R");
+  cc.forEach(x => foe.push(`<b>${x.k} · ${x.name}</b> ${lbl(x)} ${meta(x)}. Depois que ele usar, você tem uns ${x.cd1}s (no nível 1) para entrar e trocar.`));
+  esc.forEach(x => foe.push(`<b>${x.k} · ${x.name}</b> ${lbl(x)} ${meta(x)}. É a fuga ou a entrada dele: não gaste seu controle quando ela estiver pronta.`));
+  foe.push(`<b>R · ${rb.name}</b>${lbl(rb) ? " " + lbl(rb) : ""} ${meta(rb)}. Fique atento a partir do nível 6.`);
+  ka.filter(x => x.k !== "R" && x.tags.length).slice(0, 3).forEach(x =>
+    mine.push(`<b>${x.k} · ${x.name}</b> ${lbl(x)} ${meta(x)}.${x.hard ? " Guarde para quando o controle dele estiver em recarga." : x.dash ? " Use para entrar na troca ou para escapar do controle dele." : ""}`));
+  if (!mine.length) mine.push(`Suas habilidades são principalmente de dano: use-as depois que o controle dele for gasto.`);
+  mine.push(`<b>R · ${ra.name}</b>${lbl(ra) ? " " + lbl(ra) : ""} ${meta(ra)}. Compare com a dele no nível 6 antes de se arriscar.`);
+  const w = cc.slice().sort((x, y) => x.cd1 - y.cd1)[0];
+  return { foe, mine, window: w ? `A principal janela para trocar é logo depois da <b>${w.k} (${w.name})</b> dele, que recarrega em ${w.cd}s.` : "" };
+}
+function statsHtml(a, b) {
+  const A = CH[a].stats, B = CH[b].stats;
+  const rows = [["Vida", "hp"], ["Armadura", "armor"], ["Res. mágica", "spellblock"], ["Dano de ataque", "attackdamage"], ["Velocidade", "movespeed"], ["Alcance", "attackrange"]];
+  return `<section><h2>Atributos base no nível 1</h2><div class="stats">${rows.map(([n, k]) =>
+    `<span class="${A[k] > B[k] ? "good" : ""}"><b>${Math.round(A[k])}</b></span><span>${n}</span><span class="${B[k] > A[k] ? "good" : ""}"><b>${Math.round(B[k])}</b></span>`).join("")}</div></section>`;
 }
 
 /* ---------- Eventos ---------- */
