@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Meu LoL</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0c1320">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Meu LoL">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f5f9;--s:#fff;--s2:#eaeef5;--text:#121a26;--muted:#5f6f83;--line:#dde3ec;--acc:#0f9d8a;--gold:#a97b12;--good:#13915f;--bad:#c9443c;--glow:rgba(15,157,138,.1)}
@@ -234,6 +240,7 @@ $("out").onclick = e => {
   if (e.target.id === "retry") run(false);
 };
 init();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
