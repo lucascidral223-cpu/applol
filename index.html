@@ -13,17 +13,17 @@ body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.55 "Inter",
 .wrap{max-width:880px;margin:0 auto;padding:20px 16px 56px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .brand{font-weight:800;font-size:1.2rem;letter-spacing:-.02em}.brand i{color:var(--acc);font-style:normal}
-.seg{display:flex;background:var(--s);border:1px solid var(--line);border-radius:999px;padding:4px}
 button{font:600 14px "Inter",system-ui,sans-serif;color:var(--muted);background:none;border:0;border-radius:999px;padding:8px 16px;cursor:pointer}
-button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 button[aria-pressed="true"]{background:var(--acc);color:#04201c}
-.search{display:flex;gap:8px;margin-bottom:10px}
+.pill{background:var(--s);border:1px solid var(--line);color:var(--text);white-space:nowrap}
+.pill[aria-pressed="true"]{background:var(--acc);color:#04201c;border-color:var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 input{font:inherit;color:var(--text);background:var(--s);border:1px solid var(--line);border-radius:14px;padding:11px 14px;width:100%}
-.pill{background:var(--s);border:1px solid var(--line);white-space:nowrap}
-#grid{display:flex;flex-wrap:wrap;gap:8px;max-height:176px;overflow-y:auto;padding:12px;background:var(--s);border:1px solid var(--line);border-radius:18px;margin-bottom:26px}
-#grid button{padding:0;width:50px;height:50px;border-radius:12px;overflow:hidden;opacity:.85;transition:transform .12s,opacity .12s}
-#grid button:hover{opacity:1;transform:translateY(-2px)}
-#grid button.sel{opacity:1;outline:2px solid var(--acc);outline-offset:1px}
+.search{display:flex;gap:8px;margin-bottom:10px}
+#grid{display:flex;flex-wrap:wrap;gap:8px;max-height:170px;overflow-y:auto;padding:12px;background:var(--s);border:1px solid var(--line);border-radius:18px;margin-bottom:20px}
+#grid button{padding:0;width:50px;height:50px;border-radius:12px;overflow:hidden;opacity:.85}
+#grid button:hover{opacity:1}#grid button.sel{opacity:1;outline:2px solid var(--acc);outline-offset:1px}
 #grid img{width:100%;height:100%;display:block}
 .card{background:var(--s);border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:16px}
 .eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
@@ -34,298 +34,203 @@ input{font:inherit;color:var(--text);background:var(--s);border:1px solid var(--
 .vs .x{color:var(--muted);font-weight:800;letter-spacing:.1em}
 .badge{display:inline-block;margin-top:14px;font-weight:800;border-radius:999px;padding:6px 14px;background:var(--s2)}
 .badge.up{color:var(--good)}.badge.down{color:var(--bad)}.badge.even{color:var(--gold)}
-.center{text-align:center}.src{color:var(--muted);font-size:13px;margin:6px 0 0}
+.center{text-align:center}.src{color:var(--muted);font-size:14px;margin:8px 0 0}
 .big{font-size:clamp(1.15rem,3.6vw,1.45rem);font-weight:600;line-height:1.4;margin:0}
 ul.t{margin:0;padding:0;list-style:none}ul.t li{position:relative;padding-left:20px;margin-bottom:10px}
 ul.t li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--acc)}
 .bad ul.t li::before{background:var(--bad)}.good ul.t li::before{background:var(--good)}
-h1{font-size:clamp(2rem,8vw,3rem);line-height:1.05;margin:0;letter-spacing:-.03em}
-header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-header img{width:84px;height:84px;border-radius:18px}
-.sub{color:var(--muted);margin:4px 0 0}
-.roles{display:flex;gap:6px;margin-top:18px;flex-wrap:wrap}.roles button{background:var(--s);border:1px solid var(--line)}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:640px){.cols{grid-template-columns:1fr}}
-.list{display:flex;flex-wrap:wrap;gap:8px}
+.list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
 .chip{display:flex;align-items:center;gap:8px;background:var(--s2);border-radius:12px;padding:4px 12px 4px 4px;font-weight:600;font-size:14px}
-.chip img{width:36px;height:36px;border-radius:8px}.chip small{color:var(--muted);font-weight:400}
-.mu{display:flex;flex-direction:column;gap:6px}.mu .chip{cursor:pointer}.mu .chip:hover{outline:1px solid var(--acc)}
-.mu .wr{margin-left:auto;font-weight:800}.bad .wr{color:var(--bad)}.good .wr{color:var(--good)}
+.chip img{width:36px;height:36px;border-radius:8px}.chip.n{padding:8px 12px}
 .slots{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .slot{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:var(--s);color:var(--text);border-radius:16px;padding:8px 16px 8px 8px;text-align:left;min-width:170px}
 .slot[aria-pressed="true"]{background:var(--s);color:var(--text);border-color:var(--acc)}
 .slot img{width:48px;height:48px;border-radius:10px}.slot small{display:block;color:var(--muted);font-weight:400}
-.sp{display:flex;gap:12px;margin-bottom:14px}.sp img{width:44px;height:44px;border-radius:10px;flex:none}
-.sp b{display:block}.sp span{color:var(--muted);font-size:14px}
-.stats{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:6px 10px;text-align:center;max-width:440px}
-.stats span.good b{color:var(--good)}.stats span:nth-child(3n+2){color:var(--muted);font-size:14px}
-.hint,#msg{color:var(--muted);font-size:14px}
-.tool{margin:18px 0 0;display:flex;gap:8px}
+.hint{color:var(--muted);font-size:14px}
+.tool{margin:18px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+.when{color:var(--muted);font-size:13px;margin:6px 0 0}
+a{color:var(--acc)}
+.fonts a{display:inline-block;margin:0 10px 6px 0;font-size:14px}
 </style>
 </head>
 <body>
 <main class="wrap">
-  <div class="top"><div class="brand">Meu <i>LoL</i></div><div class="seg"><button id="tabC">Campeão</button><button id="tabM">Matchup</button></div></div>
+  <div class="top"><div class="brand">Meu <i>LoL</i></div><button class="pill" id="keyBtn">Chave Gemini</button></div>
+  <div id="keyBox"></div>
+  <div class="row" id="roles"></div>
   <div class="search"><input id="q" placeholder="Buscar campeão…" aria-label="Buscar campeão" autocomplete="off"><button class="pill" id="onlyTop">Só topo</button></div>
   <div id="grid"></div>
-  <div id="view"><p id="msg">Carregando…</p></div>
+  <div id="slots"></div>
+  <div id="out"></div>
 </main>
 <script>
 const DD = "https://ddragon.leagueoflegends.com";
-const MIN = 3, SMALL = 8;
+const MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview"];
 const ROLES = {TOP:"Topo", JUNGLE:"Selva", MIDDLE:"Meio", BOTTOM:"Atirador", UTILITY:"Suporte"};
-let V, CH = {}, IT = {}, DB = {}, SM = {}, mode = "champ", cur, role, me = null, foe = null, target = "me", mrole, onlyTop = true, compact = false;
-const CACHE = {};
+const TOPS = new Set("Aatrox Ambessa Camille Chogath Darius DrMundo Fiora Galio Garen Gnar Gragas Gwen Heimerdinger Illaoi Irelia Jax Jayce Kayle Kennen Kled KSante Lissandra Malphite Maokai MonkeyKing Mordekaiser Nasus Olaf Ornn Pantheon Poppy Quinn Rammus Renekton Riven Rumble Ryze Sett Shen Singed Sion Sylas Teemo Trundle Tryndamere Udyr Urgot Vayne Vladimir Volibear Warwick Yasuo Yone Yorick Akali Akshan Cassiopeia Gangplank".split(" "));
+let V, CH = {}, IT = {}, SM = {}, KEY = "", role = "TOP", me = null, foe = null, target = "me", onlyTop = true, compact = false, rid = 0, last = null;
+try { KEY = localStorage.getItem("gemini-key") || ""; } catch (e) {}
 const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const arr = x => Array.isArray(x) ? x : (x ? [x] : []);
+const li = a => arr(a).map(t => `<li>${esc(t)}</li>`).join("");
 const chImg = id => `${DD}/cdn/${V}/img/champion/${id}.png`;
-const itImg = id => `${DD}/cdn/${V}/img/item/${id}.png`;
-const pct = (w, g) => (100 * w / g).toFixed(1) + "%";
-const li = a => a.map(t => `<li>${t}</li>`).join("");
-const rolesOf = id => Object.entries(DB[id] || {}).sort((a, b) => b[1].g - a[1].g).map(([r]) => r);
-async function detail(id) { return CACHE[id] || (CACHE[id] = (await (await fetch(`${DD}/cdn/${V}/data/pt_BR/champion/${id}.json`)).json()).data[id]); }
-
-/* ---------- Estilos de campeão (topo) ---------- */
-const AR = {};
-[["tank", "Malphite Ornn Sion Shen Maokai Chogath Poppy Rammus KSante Galio Singed DrMundo"],
- ["bruiser", "Darius Garen Mordekaiser Illaoi Volibear Urgot Olaf Sett Renekton Aatrox Pantheon MonkeyKing Kled Trundle Udyr Gragas Warwick Ambessa"],
- ["splitter", "Fiora Jax Tryndamere Camille Yorick Nasus Gwen"],
- ["skirm", "Yasuo Yone Irelia Riven Akali"],
- ["ranged", "Teemo Kennen Vayne Quinn Jayce Gnar Kayle Vladimir Rumble Heimerdinger Gangplank Akshan Cassiopeia Ryze Sylas Lissandra"]]
- .forEach(([k, s]) => s.split(" ").forEach(n => AR[n] = k));
-const ARCH = {
-  tank: { n: "tanque", early: 1.5, split: .5, tf: 3,
-    lane: "Jogue seguro: farme sob a torre, segure a wave perto de você e use o controle de grupo só para se defender até fechar os primeiros itens.",
-    late: "Seu valor está nos teamfights: entre primeiro, prenda os carries inimigos e proteja seu time. Splitar só vale se o time estiver por perto ou se o inimigo estiver forçando objetivo.",
-    err: ["Forçar trocas longas no início: você perde vida e dá pouco dano.", "Splitar sozinho sem visão e dar um pick de graça."],
-    win: "escalar sem morrer, fechar os itens e decidir os teamfights com seu controle de grupo",
-    vsLane: "Ele dá pouco dano, então não tema um all-in, mas ele vai segurar a wave e te irritar.", vsErr: "Gastar mana e vida tentando matar um tanque sozinho: ele tem vida e resistência demais." },
-  bruiser: { n: "bruiser", early: 3, split: 1.5, tf: 2,
-    lane: "Pressione cedo: use os primeiros níveis para trocar, ganhar prioridade de wave e abrir vantagem antes que o inimigo escale.",
-    late: "Você é forte em skirmishes e lutas próximas. Splite só quando o time precisar de pressão e volte para o grupo antes do próximo objetivo.",
-    err: ["Perseguir sem vantagem de vida e cair na torre.", "Não converter a vantagem do começo em torre ou objetivo: ela some com o tempo."],
-    win: "abrir vantagem na rota, converter em torre e objetivos e jogar os skirmishes perto do seu time",
-    vsLane: "Ele quer trocar cedo e te empurrar: não aceite trocas com a vida baixa.", vsErr: "Trocar quando ele está no pico de força: espere o seu ou recue." },
-  splitter: { n: "splitpusher", early: 2, split: 3, tf: 1,
-    lane: "Jogue pela wave: evite trocas arriscadas e foque em chegar ao nível 6 e aos primeiros itens sem ficar para trás.",
-    late: "Sua força é a pressão lateral: empurre a side, force o inimigo a responder e só entre no teamfight quando houver brecha. Use o teleporte para flanquear ou defender.",
-    err: ["Splitar sem visão ou sem saber onde está o jungle inimigo.", "Entrar de frente no teamfight em vez de flanquear."],
-    win: "ganhar a side, forçar o inimigo a mandar duas ou mais pessoas e impactar o mapa mais que seu oponente",
-    vsLane: "Ele é mais fraco no início, mas escala bem: não deixe farmar sem pressão.", vsErr: "Deixar ele splitar de graça: ponha visão na side e tenha alguém para responder." },
-  skirm: { n: "skirmisher", early: 2.5, split: 2, tf: 2,
-    lane: "Jogue pela mobilidade: troque quando as suas habilidades de fuga estiverem prontas e saia quando o inimigo estiver com as dele.",
-    late: "Procure flancos, alvos isolados e picks: entre no teamfight pelo lado para acertar os alvos mais frágeis.",
-    err: ["Gastar a mobilidade cedo e ficar exposto ao gank.", "Entrar sozinho na frente do time."],
-    win: "pegar abates isolados, ganhar tempo e acelerar o jogo junto com o jungle",
-    vsLane: "Ele é difícil de acertar: guarde seu controle de grupo para quando ele usar a mobilidade.", vsErr: "Gastar o controle antes de ele usar a fuga." },
-  ranged: { n: "ranged", early: 2.5, split: 1.5, tf: 3,
-    lane: "Use o alcance: troque com habilidades à distância, não deixe o corpo a corpo chegar e empurre quando for seguro.",
-    late: "Fique atrás do front causando dano à distância. Splitar só com visão e quando houver defesa.",
-    err: ["Ficar sem mana empurrando demais sem recuar.", "Se posicionar mal e deixar o inimigo acertar o all-in."],
-    win: "cutucar com segurança na rota e escalar para dano à distância nos teamfights",
-    vsLane: "Ele te cutuca de longe: use arbustos, chegue só nas janelas de recarga e chame o jungle.", vsErr: "Aceitar trocas à distância sem vida: chegue perto quando as habilidades dele estiverem em recarga." }
-};
-const archOf = id => { const c = CH[id]; return AR[id] || (c.tags.includes("Tank") ? "tank" : c.tags.includes("Mage") || c.tags.includes("Marksman") || c.stats.attackrange >= 300 ? "ranged" : c.tags.includes("Assassin") ? "skirm" : "bruiser"); };
-
-function plan(a, b, m) {
-  const X = ARCH[archOf(a)], Y = ARCH[archOf(b)], A = CH[a], B = CH[b], dr = A.stats.attackrange - B.stats.attackrange;
-  let r, src;
-  if (m && m[0] >= MIN) { r = m[1] / m[0]; src = `estatística: ${pct(m[1], m[0])} de vitória em ${m[0]} jogos${m[0] < SMALL ? " (amostra pequena)" : ""}`; }
-  else { const d = X.early + (dr >= 100 ? .7 : 0) - Y.early - (dr <= -100 ? .7 : 0); r = .5 + Math.max(-.08, Math.min(.08, d * .03)); src = "estimativa pelo estilo dos campeões, sem estatística"; }
-  const side = r >= .53 ? "up" : r <= .47 ? "down" : "even";
-  const title = { up: "Você ganha a rota", down: "O inimigo ganha a rota", even: "Rota equilibrada" }[side];
-  const game = { up: `Você leva vantagem: pressione cedo, tome a prioridade de wave e converta em torre ou objetivo antes que ${B.name} escale.`,
-    down: `Jogue recuado até o nível 6, evite trocas longas e farme sob a torre. ${Y.vsLane}`,
-    even: `Rota equilibrada: jogue pelo farm e pelo controle da wave, e só troque quando as habilidades de controle de ${B.name} estiverem em recarga.` }[side];
-  const lane = [X.lane, `Contra ${B.name} (${Y.n}): ${Y.vsLane}`,
-    { up: "Com a vantagem, use o recuo dele para empurrar a wave e chame o jungle para fechar a torre.", down: "Se ele empurrar, deixe a wave chegar na sua torre e farme com segurança. Chame o jungle se ele passar da linha.", even: "Quem chega primeiro ao nível 6 costuma decidir a rota: cuide do seu XP." }[side]];
-  if (dr >= 100) lane.push(`Você tem mais alcance: troque de longe e puna quando ele tentar chegar perto.`);
-  else if (dr <= -100) lane.push(`${B.name} tem mais alcance: não fique na linha dele sem motivo e entre nas trocas quando ele gastar habilidades.`);
-  const late = [X.late];
-  late.push(X.split > Y.split ? `No split você leva vantagem sobre ${B.name}: empurre a lateral e force o time inimigo a responder.` : X.split < Y.split ? `Splitar sozinho contra ${B.name} é arriscado: ele pune quem fica isolado. Prefira ficar com o time e jogar pelos objetivos.` : `O split é parelho: o que decide é a wave e o mapa, então só splite com visão.`);
-  late.push(X.tf > Y.tf ? "Nos teamfights seu papel pesa mais que o dele: fique junto do time." : X.tf < Y.tf ? `${B.name} tem mais impacto em teamfights: evite lutar de frente e procure flancos ou objetivos com picks.` : "Nos teamfights o impacto é parecido: posicionamento e controle de grupo decidem.");
-  late.push("Guarde o teleporte para objetivos (arauto, dragão) ou para defender torre, não só para voltar à rota.");
-  const err = [...X.err, Y.vsErr, "Gastar o teleporte cedo ou sem necessidade."];
-  const win = `Sua win condition: ${X.win}.`;
-  const behind = `Se você cair na rota (0/2, por exemplo), não tente resolver solando ${B.name}: segure a wave perto da torre, farme com segurança e use o teleporte ou o jungle para impactar o mapa (arauto, dragão ou a side). Entre no mid game com o time em vez de forçar a rota.`;
-  const ahead = `Se estiver na frente, converta: empurre, tome a torre e use a prioridade para ajudar o jungle no arauto e no dragão antes que o inimigo escale.`;
-  return { side, title, src, game, lane, late, err, win, behind, ahead };
-}
 
 async function init() {
   try {
     V = (await (await fetch(DD + "/api/versions.json")).json())[0];
-    const [c, i] = await Promise.all([
-      fetch(`${DD}/cdn/${V}/data/pt_BR/champion.json`).then(r => r.json()),
-      fetch(`${DD}/cdn/${V}/data/pt_BR/item.json`).then(r => r.json())
-    ]);
-    CH = c.data; IT = i.data;
-    try { SM = (await (await fetch(`${DD}/cdn/${V}/data/pt_BR/summoner.json`)).json()).data; } catch (e) {}
-  } catch (e) { $("msg").textContent = "Não consegui carregar os dados da Riot. Verifique a conexão."; return; }
-  try { DB = (await (await fetch("data.json")).json()).agg || {}; } catch (e) { DB = {}; }
-  cur = AR.Darius && CH.Darius ? "Darius" : Object.keys(CH)[0];
-  render();
+    const g = f => fetch(`${DD}/cdn/${V}/data/pt_BR/${f}.json`).then(r => r.json());
+    const [c, i, s] = await Promise.all([g("champion"), g("item"), g("summoner")]);
+    CH = c.data; IT = i.data; SM = s.data;
+  } catch (e) { $("out").innerHTML = `<p class="hint">Não consegui carregar os dados da Riot. Verifique a conexão.</p>`; return; }
+  renderAll();
+  if (!KEY) renderKey(true);
 }
-function render() {
-  $("tabC").setAttribute("aria-pressed", mode === "champ");
-  $("tabM").setAttribute("aria-pressed", mode === "match");
+function renderAll() { renderRoles(); renderGrid(); renderSlots(); }
+function renderRoles() {
+  $("roles").innerHTML = Object.entries(ROLES).map(([k, n]) => `<button class="pill" data-role="${k}" aria-pressed="${k === role}">${n}</button>`).join("");
   $("onlyTop").setAttribute("aria-pressed", onlyTop);
-  renderGrid();
-  mode === "champ" ? champView() : matchView();
 }
 function renderGrid() {
-  const t = $("q").value.trim().toLowerCase(), sel = mode === "champ" ? [cur] : [me, foe];
-  $("grid").innerHTML = Object.values(CH).filter(c => c.name.toLowerCase().includes(t) && (!onlyTop || AR[c.id]))
-    .map(c => `<button data-id="${c.id}" title="${c.name}" aria-label="${c.name}" class="${sel.includes(c.id) ? "sel" : ""}"><img loading="lazy" src="${chImg(c.id)}" alt=""></button>`).join("");
+  const t = norm($("q").value), sel = [me, foe];
+  $("grid").innerHTML = Object.values(CH).filter(c => norm(c.name).includes(t) && (!onlyTop || TOPS.has(c.id)))
+    .map(c => `<button data-id="${c.id}" title="${esc(c.name)}" aria-label="${esc(c.name)}" class="${sel.includes(c.id) ? "sel" : ""}"><img loading="lazy" src="${chImg(c.id)}" alt=""></button>`).join("");
 }
-function topItems(obj, n) { return Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).filter(([id]) => IT[id]).slice(0, n); }
-function itemChips(list, total) { return `<div class="list">${list.map(([id, k]) => `<div class="chip"><img src="${itImg(id)}" alt="">${IT[id].name}<small>${pct(k, total)}</small></div>`).join("")}</div>`; }
-function mu(list) {
-  if (!list.length) return `<p class="hint">Nenhum confronto registrado ainda.</p>`;
-  return `<div class="mu">${list.map(([n, x]) => { const c = CH[n]; if (!c) return "";
-    return `<div class="chip" role="button" tabindex="0" data-foe="${n}" title="Ver matchup"><img src="${chImg(c.id)}" alt="">${c.name}<small>${x[0]} jogos${x[0] < SMALL ? " · amostra pequena" : ""}</small><span class="wr">${pct(x[1], x[0])}</span></div>`; }).join("")}</div>`;
+function renderSlots() {
+  const slot = (k, label, id) => `<button class="slot" data-target="${k}" aria-pressed="${target === k}">${id ? `<img src="${chImg(id)}" alt=""><span><small>${label}</small>${esc(CH[id].name)}</span>` : `<span><small>${label}</small>Escolher…</span>`}</button>`;
+  $("slots").innerHTML = `<div class="slots">${slot("me", "Meu campeão", me)}<button class="pill" id="swap" aria-label="Trocar">⇄</button>${slot("foe", "Campeão inimigo", foe)}</div>`;
+}
+function renderKey(open) {
+  if (!open) { $("keyBox").innerHTML = ""; return; }
+  $("keyBox").innerHTML = `<div class="card acc"><p class="eyebrow">Chave do Gemini</p>
+    <p style="margin-top:0">Para gerar as análises, cole sua chave gratuita do Google AI Studio (aistudio.google.com/apikey). Ela fica salva só neste navegador e é enviada apenas para o Google.</p>
+    <input id="keyIn" type="password" placeholder="Cole a chave aqui" autocomplete="off" value="${esc(KEY)}">
+    <div class="tool"><button class="pill" id="saveKey">Salvar</button>${KEY ? `<button class="pill" id="delKey">Remover chave</button>` : ""}</div></div>`;
 }
 
-/* ---------- Modo campeão ---------- */
-function champView() {
-  const c = CH[cur], rs = rolesOf(cur);
-  if (!rs.includes(role)) role = rs[0];
-  let h = `<header><img src="${chImg(c.id)}" alt=""><div><h1>${c.name}</h1><p class="sub">${c.title}</p></div></header>`;
-  const d = role && DB[cur][role];
-  if (!d) { $("view").innerHTML = h + `<p class="hint" style="margin-top:20px">Sem estatísticas deste campeão na base (opcional).</p><div id="extra"></div>`; loadExtra(cur); return; }
-  const opps = Object.entries(d.o).filter(([, x]) => x[0] >= MIN), wr = x => x[1] / x[0];
-  const bad = opps.filter(([, x]) => wr(x) < .5).sort((a, b) => wr(a[1]) - wr(b[1])).slice(0, 6);
-  const good = opps.filter(([, x]) => wr(x) >= .5).sort((a, b) => wr(b[1]) - wr(a[1])).slice(0, 6);
-  h += `<div class="roles">${rs.map(r => `<button data-role="${r}" aria-pressed="${r === role}">${ROLES[r] || r}</button>`).join("")}</div>
-  <p class="hint" style="margin-top:10px">${d.g} partidas · ${pct(d.w, d.g)} de vitória</p>
-  <div class="card"><p class="eyebrow">Build mais usada</p>${itemChips(topItems(d.i, 8), d.g)}</div>
-  <div class="cols"><div class="card bad"><p class="eyebrow">Counters</p>${mu(bad)}</div><div class="card good"><p class="eyebrow">Matchups bons</p>${mu(good)}</div></div>
-  <p class="hint" style="margin-top:12px">Toque em um campeão da lista para abrir o matchup.</p><div id="extra"></div>`;
-  $("view").innerHTML = h; loadExtra(cur);
+/* ---------- Gemini ---------- */
+function prompt() {
+  const A = CH[me].name, B = CH[foe].name, patch = V.split(".").slice(0, 2).join(".");
+  return `Você é um coach de League of Legends de alto nível. Analise o confronto na rota ${ROLES[role]}: ${A} (meu campeão) contra ${B} (campeão inimigo), no patch atual (${patch}).
+Use a busca na web para conferir a taxa de vitória e as builds atuais deste confronto (Lolalytics, U.GG, Mobalytics, OP.GG) e diga na resposta quando não encontrar dados. Use os nomes de itens, runas e feitiços exatamente como aparecem no cliente brasileiro do LoL (pt-BR). Seja direto e prático.
+Responda SOMENTE com um JSON válido, sem markdown e sem texto fora dele, neste formato:
+{"veredito":"favorece_voce | favorece_inimigo | equilibrado",
+"resumo_dados":"1 frase com quem leva vantagem na rota e a taxa de vitória aproximada",
+"plano_de_jogo":"1 frase ultra-curta com o plano (ex.: jogue recuado até o nível 6, evite trocas longas e farme sob a torre)",
+"win_condition":"2 a 3 frases: como vencer este confronto e o que fazer se estiver atrás (ex.: 0/2)",
+"runas":{"principal":"árvore e runas","secundaria":"árvore e runas","porque":"1 frase"},
+"feiticos":[{"nome":"Flash","motivo":"..."},{"nome":"...","motivo":"..."}],
+"itens":{"iniciais":["..."],"botas":"...","core":["..."],"situacionais":[{"item":"...","quando":"..."}]},
+"fase_de_rotas":["níveis 1 a 3: ...","níveis 4 a 5: ...","nível 6: ..."],
+"mid_late":["split push: ...","teamfight: ...","objetivos e teleporte: ..."],
+"erros_comuns":["o que NÃO fazer, 3 a 5 itens"]}`;
 }
-async function loadExtra(id) {
+async function ask(text) {
+  let msg = "Modelo indisponível.";
+  for (const model of MODELS) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": KEY },
+      body: JSON.stringify({ contents: [{ parts: [{ text }] }], tools: [{ google_search: {} }], generationConfig: { temperature: 0.4 } }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 404) { msg = (j.error && j.error.message) || msg; continue; }
+    if (!r.ok) throw Object.assign(new Error((j.error && j.error.message) || "Erro"), { status: r.status });
+    return j;
+  }
+  throw new Error(msg);
+}
+function parse(j) {
+  const c = j.candidates && j.candidates[0], t = ((c && c.content && c.content.parts) || []).map(p => p.text || "").join("");
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a < 0 || b < a) throw new Error("A resposta não veio no formato esperado. Tente atualizar.");
+  const o = JSON.parse(t.slice(a, b + 1));
+  const ch = (c && c.groundingMetadata && c.groundingMetadata.groundingChunks) || [];
+  const src = [...new Map(ch.filter(x => x.web && /^https:\/\//.test(x.web.uri || "")).map(x => [x.web.uri, { u: x.web.uri, t: x.web.title || "fonte" }])).values()].slice(0, 6);
+  return { o, src };
+}
+function errMsg(e) {
+  if (e.status === 400 || e.status === 403) return "A chave do Gemini foi recusada. Confira se copiou a chave inteira em “Chave Gemini”.";
+  if (e.status === 429) return "O limite gratuito do Gemini foi atingido. Espere um ou dois minutos e tente de novo.";
+  if (e.status >= 500) return "O Gemini está sobrecarregado agora. Tente de novo em instantes.";
+  return e.message || "Algo deu errado.";
+}
+async function run(force) {
+  if (!me || !foe) return;
+  if (!KEY) { renderKey(true); $("out").innerHTML = ""; return; }
+  const key = `lol:${role}:${me}:${foe}`, id = ++rid;
+  let c = null; try { c = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+  if (c && !force) { last = c; show(); return; }
+  $("out").innerHTML = `<div class="card center"><p class="big">Gerando a análise…</p><p class="hint">Consultando o Gemini e a web. Leva de 10 a 40 segundos.</p></div>`;
   try {
-    const d = await detail(id), el = $("extra"); if (!el || id !== cur || mode !== "champ") return;
-    const strip = s => s.replace(/<br\s*\/?>/g, " ").replace(/<[^>]+>/g, "");
-    const sp = [["Passiva", d.passive, "passive"], ...d.spells.map((s, i) => ["QWER"[i], s, "spell"])];
-    el.innerHTML = `<div class="cols"><div class="card good"><p class="eyebrow">Dicas para jogar de ${d.name}</p><ul class="t">${li(d.allytips)}</ul></div>
-      <div class="card bad"><p class="eyebrow">Dicas para jogar contra ${d.name}</p><ul class="t">${li(d.enemytips)}</ul></div></div>
-      <div class="card"><p class="eyebrow">Habilidades</p>${sp.map(([k, s, t]) => `<div class="sp"><img src="${DD}/cdn/${V}/img/${t}/${s.image.full}" alt=""><div><b>${k} · ${s.name}</b><span>${strip(s.description)}</span></div></div>`).join("")}</div>`;
-  } catch (e) {}
-}
-
-/* ---------- Habilidades no confronto ---------- */
-const TAGS = [["stun", /atordo/, "atordoa"], ["root", /enra[ií]z|imobiliz|prende/, "prende no lugar"], ["air", /derrub|arremess|ao ar/, "lança para o ar"],
-  ["silence", /silenc/, "silencia"], ["fear", /medo|aterroriz/, "causa medo"], ["taunt", /provoc/, "provoca"], ["charm", /encant|enfeiti/, "enfeitiça"],
-  ["pull", /\bpux/, "puxa"], ["slow", /lentid|reduz[^.]*velocidade de movimento/, "deixa lento"], ["dash", /avan[çc]a|investe|salta|pula|teletransport|impuls/, "dá um avanço"],
-  ["shield", /escudo/, "dá escudo"], ["heal", /\bcura|restaura/, "cura"], ["immune", /invulner|intang|n[ãa]o pode ser alvo/, "ganha imunidade"]];
-const HARD = ["stun", "root", "air", "silence", "fear", "taunt", "charm", "pull"];
-function kit(d) {
-  return d.spells.map((s, i) => { const txt = s.description.replace(/<[^>]+>/g, " ").toLowerCase();
-    const tags = TAGS.filter(([, re]) => re.test(txt)).map(([k, , l]) => [k, l]);
-    return { k: "QWER"[i], name: s.name, tags, hard: tags.some(([k]) => HARD.includes(k)), dash: tags.some(([k]) => k === "dash"),
-      cd1: parseFloat((s.cooldown || [])[0]) || 0, cd: s.cooldownBurn || "", range: /^\d+$/.test(s.rangeBurn || "") ? s.rangeBurn : "" }; });
-}
-const lbl = x => x.tags.map(([, l]) => l).join(", "), meta = x => `(recarga ${x.cd}s${x.range ? `, alcance ${x.range}` : ""})`;
-function analysis(a, b) {
-  const ka = kit(a), kb = kit(b), ra = ka[3], rb = kb[3], foe = [], mine = [];
-  const cc = kb.filter(x => x.hard && x.k !== "R"), esc = kb.filter(x => x.dash && !x.hard && x.k !== "R");
-  cc.forEach(x => foe.push(`<b>${x.k} · ${x.name}</b> ${lbl(x)} ${meta(x)}. Depois de usar, você tem uns ${x.cd1}s (no nível 1) para entrar e trocar.`));
-  esc.forEach(x => foe.push(`<b>${x.k} · ${x.name}</b> ${lbl(x)} ${meta(x)}. É a fuga ou a entrada dele: não gaste seu controle quando estiver pronta.`));
-  foe.push(`<b>R · ${rb.name}</b>${lbl(rb) ? " " + lbl(rb) : ""} ${meta(rb)}. Fique atento a partir do nível 6.`);
-  ka.filter(x => x.k !== "R" && x.tags.length).slice(0, 3).forEach(x => mine.push(`<b>${x.k} · ${x.name}</b> ${lbl(x)} ${meta(x)}.${x.hard ? " Guarde para quando o controle dele estiver em recarga." : x.dash ? " Use para entrar na troca ou escapar do controle dele." : ""}`));
-  if (!mine.length) mine.push("Suas habilidades são principalmente de dano: use depois que o controle dele for gasto.");
-  mine.push(`<b>R · ${ra.name}</b>${lbl(ra) ? " " + lbl(ra) : ""} ${meta(ra)}. Compare com a dele no nível 6 antes de se arriscar.`);
-  const w = cc.slice().sort((x, y) => x.cd1 - y.cd1)[0];
-  return { foe, mine, window: w ? `A principal janela para trocar é logo depois da <b>${w.k} (${w.name})</b> dele, que recarrega em ${w.cd}s.` : "" };
-}
-function statsHtml(a, b) {
-  const A = CH[a].stats, B = CH[b].stats;
-  const rows = [["Vida", "hp"], ["Armadura", "armor"], ["Res. mágica", "spellblock"], ["Dano de ataque", "attackdamage"], ["Velocidade", "movespeed"], ["Alcance", "attackrange"]];
-  return `<div class="stats">${rows.map(([n, k]) => `<span class="${A[k] > B[k] ? "good" : ""}"><b>${Math.round(A[k])}</b></span><span>${n}</span><span class="${B[k] > A[k] ? "good" : ""}"><b>${Math.round(B[k])}</b></span>`).join("")}</div>`;
-}
-
-/* ---------- Feitiços de invocador ---------- */
-const SMN = { flash: "SummonerFlash", tp: "SummonerTeleport", ign: "SummonerDot", ghost: "SummonerHaste", bar: "SummonerBarrier", cleanse: "SummonerBoost", exh: "SummonerExhaust" };
-function summCard(a, b, P) {
-  const kb = kit(b), ar = archOf(a.id), fr = archOf(b.id), A = CH[a.id], B = CH[b.id];
-  const heals = kb.some(x => x.tags.some(([k]) => k === "heal")), ccs = kb.filter(x => x.hard).length, melee = A.stats.attackrange < 250;
-  let main, alt;
-  if (P.side === "up" && (ar === "bruiser" || ar === "skirm")) {
-    main = ["ign", "Você leva vantagem e quer matar a rota: o Ignite dá dano extra para fechar o abate e reduz a cura do inimigo."];
-    alt = ["tp", "Se a rota ficar equilibrada ou o inimigo recuar, o Teleporte rende mais no mapa."];
-  } else {
-    main = ["tp", "O padrão no topo: o Teleporte deixa você voltar à rota sem perder tanto farm e ajuda em objetivos e lutas."];
-    alt = heals ? ["ign", `${B.name} tem cura: o Ignite reduz a cura recebida e ajuda a fechar abates.`]
-      : fr === "ranged" && melee ? ["ghost", `${B.name} te cutuca de longe: o Fantasma ajuda a alcançar e a escapar do poke.`]
-      : ccs >= 2 ? ["cleanse", `${B.name} tem bastante controle de grupo: Purificar tira o efeito na hora certa.`]
-      : fr === "skirm" ? ["bar", `${B.name} tem muito burst: a Barreira ajuda a sobreviver ao all-in.`]
-      : P.side === "down" ? ["exh", "Se a rota é difícil e o inimigo te caça, a Exaustão reduz o dano e a velocidade dele."]
-      : ["ign", "O Ignite é a alternativa quando você quer mais pressão na rota."];
+    const { o, src } = parse(await ask(prompt()));
+    if (id !== rid) return;
+    last = { o, src, t: Date.now() };
+    try { localStorage.setItem(key, JSON.stringify(last)); } catch (e) {}
+    show();
+  } catch (e) {
+    if (id !== rid) return;
+    $("out").innerHTML = `<div class="card bad"><p style="margin:0 0 12px">${esc(errMsg(e))}</p><button class="pill" id="retry">Tentar de novo</button></div>`;
   }
-  const nm = k => (SM[SMN[k]] || {}).name || SMN[k];
-  const ic = k => SM[SMN[k]] ? `<img src="${DD}/cdn/${V}/img/spell/${SM[SMN[k]].image.full}" alt="">` : "";
-  const row = ([k, why], tag) => `<div style="margin-bottom:14px"><p class="eyebrow" style="margin-bottom:6px">${tag}</p><div class="list"><div class="chip">${ic("flash")}${nm("flash")}</div><div class="chip">${ic(k)}${nm(k)}</div></div><p style="margin:8px 0 0">${why}</p></div>`;
-  return `<div class="card"><p class="eyebrow">Feitiços de invocador</p>${row(main, "Recomendado")}${row(alt, "Alternativa")}<p class="hint">Sugestão automática pelo estilo dos campeões e pelas habilidades. O Flash quase sempre entra.</p></div>`;
 }
 
-/* ---------- Modo matchup ---------- */
-function matchView() {
-  const slot = (k, label, id) => `<button class="slot" data-target="${k}" aria-pressed="${target === k}">${id ? `<img src="${chImg(id)}" alt=""><span><small>${label}</small>${CH[id].name}</span>` : `<span><small>${label}</small>Escolher…</span>`}</button>`;
-  let h = `<div class="slots">${slot("me", "Meu campeão", me)}<button class="pill" id="swap" aria-label="Trocar">⇄</button>${slot("foe", "Campeão inimigo", foe)}</div>`;
-  if (!me || !foe) { $("view").innerHTML = h + `<p class="hint" style="margin-top:18px">Toque em um campeão da lista para escolher o seu e depois o inimigo.</p>`; return; }
-  const mine = rolesOf(me), withM = mine.filter(r => DB[me][r].o[foe]), rs = withM.length ? withM : mine;
-  if (!rs.includes(mrole)) mrole = rs[0];
-  const d = mrole && DB[me][mrole], m = d && d.o[foe], P = plan(me, foe, m);
-  const A = CH[me], B = CH[foe];
-  h += `<div class="tool"><button class="pill" id="compact" aria-pressed="${compact}">Modo resumo</button></div>
-  <div class="card hero center"><div class="vs"><div class="p"><img src="${chImg(me)}" alt="">${A.name}</div><div class="x">VS</div><div class="p"><img src="${chImg(foe)}" alt="">${B.name}</div></div>
-  <span class="badge ${P.side}">${P.title}</span><p class="src">${P.src}</p></div>
-  <div class="card acc"><p class="eyebrow">Plano de jogo</p><p class="big">${P.game}</p></div>
-  <div class="card good"><p class="eyebrow">Win condition</p><p style="margin:0 0 10px"><b>${P.win.replace("Sua win condition: ", "")}</b></p><ul class="t"><li>${P.behind}</li><li>${P.ahead}</li></ul></div>`;
+/* ---------- Resultado ---------- */
+function itemChip(name) {
+  const n = norm(name), hit = Object.entries(IT).find(([, it]) => norm(it.name) === n) || Object.entries(IT).find(([, it]) => n.length > 5 && (norm(it.name).includes(n) || n.includes(norm(it.name))));
+  return hit ? `<div class="chip"><img src="${DD}/cdn/${V}/img/item/${hit[0]}.png" alt="">${esc(hit[1].name)}</div>` : `<div class="chip n">${esc(name)}</div>`;
+}
+function spellChip(name) {
+  const n = norm(name), hit = Object.values(SM).find(s => norm(s.name) === n);
+  return hit ? `<div class="chip"><img src="${DD}/cdn/${V}/img/spell/${hit.image.full}" alt="">${esc(hit.name)}</div>` : `<div class="chip n">${esc(name)}</div>`;
+}
+function show() {
+  const { o, src, t } = last, A = CH[me], B = CH[foe];
+  const side = { favorece_voce: ["up", "Você ganha a rota"], favorece_inimigo: ["down", "O inimigo ganha a rota"] }[o.veredito] || ["even", "Rota equilibrada"];
+  const it = o.itens || {}, ru = o.runas || {};
+  let h = `<div class="tool"><button class="pill" id="compact" aria-pressed="${compact}">Modo resumo</button><button class="pill" id="refresh">Atualizar análise</button></div>
+  <div class="card hero center"><div class="vs"><div class="p"><img src="${chImg(me)}" alt="">${esc(A.name)}</div><div class="x">VS</div><div class="p"><img src="${chImg(foe)}" alt="">${esc(B.name)}</div></div>
+  <span class="badge ${side[0]}">${side[1]}</span><p class="src">${esc(o.resumo_dados)}</p></div>
+  <div class="card acc"><p class="eyebrow">Plano de jogo</p><p class="big">${esc(o.plano_de_jogo)}</p></div>
+  <div class="card good"><p class="eyebrow">Win condition</p><p style="margin:0">${esc(o.win_condition)}</p></div>`;
   if (!compact) {
-    h += `<div class="card"><p class="eyebrow">Fase de rotas</p><ul class="t">${li(P.lane)}</ul></div>
-    <div class="card"><p class="eyebrow">Mid e late game: splitar e teamfight</p><ul class="t">${li(P.late)}</ul></div>
-    <div class="card bad"><p class="eyebrow">Erros comuns: o que NÃO fazer</p><ul class="t">${li(P.err)}</ul></div>`;
-    if (m) { const n = m[6] || 0, own = n >= 3 && topItems(m[2], 6).length;
-      h += `<div class="card"><p class="eyebrow">Build para este matchup</p>${own ? itemChips(topItems(m[2], 6), n) + `<p class="hint" style="margin-top:8px">Baseada em ${n} partidas deste confronto.</p>` : (d ? itemChips(topItems(d.i, 6), d.g) + `<p class="hint" style="margin-top:8px">Poucas partidas deste confronto com detalhes: mostrando a build geral.</p>` : "")}</div>`; }
-    else if (d) h += `<div class="card"><p class="eyebrow">Build geral</p>${itemChips(topItems(d.i, 6), d.g)}</div>`;
-    h += `<div id="mtips"></div>`;
+    h += `<div class="card"><p class="eyebrow">Fase de rotas</p><ul class="t">${li(o.fase_de_rotas)}</ul></div>
+    <div class="card"><p class="eyebrow">Runas</p><p style="margin:0 0 6px"><b>Principal:</b> ${esc(ru.principal)}</p><p style="margin:0 0 6px"><b>Secundária:</b> ${esc(ru.secundaria)}</p><p class="hint" style="margin:0">${esc(ru.porque)}</p></div>
+    <div class="card"><p class="eyebrow">Feitiços de invocador</p>${arr(o.feiticos).map(f => `<div style="margin-bottom:12px"><div class="list">${spellChip(f.nome)}</div><span>${esc(f.motivo)}</span></div>`).join("")}</div>
+    <div class="card"><p class="eyebrow">Build</p>
+      ${arr(it.iniciais).length ? `<p class="hint" style="margin:0 0 6px">Itens iniciais</p><div class="list">${arr(it.iniciais).map(itemChip).join("")}</div>` : ""}
+      ${it.botas ? `<p class="hint" style="margin:8px 0 6px">Botas</p><div class="list">${itemChip(it.botas)}</div>` : ""}
+      ${arr(it.core).length ? `<p class="hint" style="margin:8px 0 6px">Itens principais</p><div class="list">${arr(it.core).map(itemChip).join("")}</div>` : ""}
+      ${arr(it.situacionais).length ? `<p class="hint" style="margin:8px 0 6px">Situacionais</p>${arr(it.situacionais).map(s => `<div style="margin-bottom:10px"><div class="list" style="margin-bottom:4px">${itemChip(s.item)}</div><span>${esc(s.quando)}</span></div>`).join("")}` : ""}</div>
+    <div class="card"><p class="eyebrow">Mid e late game</p><ul class="t">${li(o.mid_late)}</ul></div>
+    <div class="card bad"><p class="eyebrow">Erros comuns: o que NÃO fazer</p><ul class="t">${li(o.erros_comuns)}</ul></div>
+    ${src.length ? `<div class="card fonts"><p class="eyebrow">Fontes consultadas pelo Gemini</p>${src.map(s => `<a href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.t)}</a>`).join("")}</div>` : ""}`;
   }
-  $("view").innerHTML = h;
-  if (compact) return;
-  Promise.all([detail(me), detail(foe)]).then(([a, b]) => {
-    const el = $("mtips"); if (!el || mode !== "match" || a.id !== me || b.id !== foe) return;
-    const an = analysis(a, b);
-    el.innerHTML = `${summCard(a, b, P)}<div class="card"><p class="eyebrow">Habilidades no confronto</p>${an.window ? `<p style="margin-top:0">${an.window}</p>` : ""}
-      <div class="cols"><div><b>O que ${b.name} pode fazer</b><ul class="t" style="margin-top:10px">${li(an.foe)}</ul></div><div><b>O que você pode fazer</b><ul class="t" style="margin-top:10px">${li(an.mine)}</ul></div></div>
-      <p class="hint">Análise automática, lida dos textos das habilidades. Confira no jogo se algo parecer estranho.</p></div>
-      <div class="card"><p class="eyebrow">Atributos base no nível 1</p>${statsHtml(me, foe)}</div>
-      <div class="cols"><div class="card good"><p class="eyebrow">Dicas oficiais: jogar de ${a.name}</p><ul class="t">${li(a.allytips)}</ul></div>
-      <div class="card bad"><p class="eyebrow">Dicas oficiais: jogar contra ${b.name}</p><ul class="t">${li(b.enemytips)}</ul></div></div>`;
-  }).catch(() => {});
+  h += `<p class="when">Gerado pelo Gemini em ${new Date(t).toLocaleString("pt-BR")}. A IA pode errar: confira os números nas fontes antes de decidir.</p>`;
+  $("out").innerHTML = h;
 }
 
 /* ---------- Eventos ---------- */
 $("q").oninput = renderGrid;
-$("tabC").onclick = () => { mode = "champ"; render(); };
-$("tabM").onclick = () => { mode = "match"; render(); };
-$("onlyTop").onclick = () => { onlyTop = !onlyTop; render(); };
+$("onlyTop").onclick = () => { onlyTop = !onlyTop; renderRoles(); renderGrid(); };
+$("keyBtn").onclick = () => renderKey(!$("keyBox").innerHTML);
+$("roles").onclick = e => { const b = e.target.closest("[data-role]"); if (!b) return; role = b.dataset.role; renderRoles(); run(false); };
 $("grid").onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
-  const id = b.dataset.id;
-  if (mode === "champ") { cur = id; role = null; window.scrollTo(0, 0); }
-  else if (target === "me") { me = id; target = "foe"; } else { foe = id; }
-  render();
+  if (target === "me") { me = b.dataset.id; target = "foe"; } else { foe = b.dataset.id; }
+  renderGrid(); renderSlots(); run(false);
 };
-$("view").onclick = e => {
-  const t = e.target.closest("[data-role],[data-mrole],[data-foe],[data-target],#swap,#compact"); if (!t) return;
-  if (t.dataset.role) role = t.dataset.role;
-  else if (t.dataset.mrole) mrole = t.dataset.mrole;
-  else if (t.dataset.foe) { me = cur; foe = t.dataset.foe; mrole = role; mode = "match"; window.scrollTo(0, 0); }
-  else if (t.dataset.target) target = t.dataset.target;
-  else if (t.id === "swap") [me, foe] = [foe, me];
-  else if (t.id === "compact") compact = !compact;
-  render();
+$("slots").onclick = e => {
+  const t = e.target.closest("[data-target],#swap"); if (!t) return;
+  if (t.id === "swap") { [me, foe] = [foe, me]; run(false); } else target = t.dataset.target;
+  renderGrid(); renderSlots();
+};
+$("keyBox").onclick = e => {
+  if (e.target.id === "saveKey") { KEY = $("keyIn").value.trim(); try { localStorage.setItem("gemini-key", KEY); } catch (x) {} renderKey(false); run(false); }
+  if (e.target.id === "delKey") { KEY = ""; try { localStorage.removeItem("gemini-key"); } catch (x) {} renderKey(true); }
+};
+$("out").onclick = e => {
+  if (e.target.id === "compact") { compact = !compact; show(); }
+  if (e.target.id === "refresh") run(true);
+  if (e.target.id === "retry") run(false);
 };
 init();
 </script>
