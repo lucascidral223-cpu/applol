@@ -55,6 +55,10 @@ ul.t li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height
 .hint{color:var(--muted);font-size:14px}
 .tool{margin:18px 0 0;display:flex;gap:8px;flex-wrap:wrap}
 .when{color:var(--muted);font-size:13px;margin:6px 0 0}
+textarea{font:inherit;color:var(--text);background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:11px 14px;width:100%;resize:vertical;min-height:84px}
+.mu2{display:flex;gap:12px;margin-bottom:16px}.mu2 img{width:48px;height:48px;border-radius:12px;flex:none}
+.mu2 b{display:block}.mu2 span{display:block;color:var(--muted);font-size:14px}.mu2 span+span{color:var(--text)}
+.qa{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.qa .q{font-weight:600;margin:0 0 8px}
 a{color:var(--acc)}
 .fonts a{display:inline-block;margin:0 10px 6px 0;font-size:14px}
 </style>
@@ -63,6 +67,7 @@ a{color:var(--acc)}
 <main class="wrap">
   <div class="top"><div class="brand">Meu <i>LoL</i></div><button class="pill" id="keyBtn">Chave Gemini</button></div>
   <div id="keyBox"></div>
+  <div class="row" id="tabs"></div>
   <div class="row" id="roles"></div>
   <div class="search"><input id="q" placeholder="Buscar campeão…" aria-label="Buscar campeão" autocomplete="off"><button class="pill" id="onlyTop">Só topo</button></div>
   <div id="grid"></div>
@@ -74,7 +79,7 @@ const DD = "https://ddragon.leagueoflegends.com";
 const MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview"];
 const ROLES = {TOP:"Topo", JUNGLE:"Selva", MIDDLE:"Meio", BOTTOM:"Atirador", UTILITY:"Suporte"};
 const TOPS = new Set("Aatrox Ambessa Camille Chogath Darius DrMundo Fiora Galio Garen Gnar Gragas Gwen Heimerdinger Illaoi Irelia Jax Jayce Kayle Kennen Kled KSante Lissandra Malphite Maokai MonkeyKing Mordekaiser Nasus Olaf Ornn Pantheon Poppy Quinn Rammus Renekton Riven Rumble Ryze Sett Shen Singed Sion Sylas Teemo Trundle Tryndamere Udyr Urgot Vayne Vladimir Volibear Warwick Yasuo Yone Yorick Akali Akshan Cassiopeia Gangplank".split(" "));
-let V, CH = {}, IT = {}, SM = {}, KEY = "", role = "TOP", me = null, foe = null, target = "me", onlyTop = true, compact = false, rid = 0, last = null;
+let V, CH = {}, IT = {}, SM = {}, KEY = "", role = "TOP", me = null, foe = null, target = "me", onlyTop = true, compact = false, rid = 0, last = null, tab = "match", cc = null, QA = {}, ckey = "", CHN = {};
 try { KEY = localStorage.getItem("gemini-key") || ""; } catch (e) {}
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -89,21 +94,26 @@ async function init() {
     const g = f => fetch(`${DD}/cdn/${V}/data/pt_BR/${f}.json`).then(r => r.json());
     const [c, i, s] = await Promise.all([g("champion"), g("item"), g("summoner")]);
     CH = c.data; IT = i.data; SM = s.data;
+    Object.values(CH).forEach(c => CHN[norm(c.name)] = c.id);
   } catch (e) { $("out").innerHTML = `<p class="hint">Não consegui carregar os dados da Riot. Verifique a conexão.</p>`; return; }
   renderAll();
   if (!KEY) renderKey(true);
 }
-function renderAll() { renderRoles(); renderGrid(); renderSlots(); }
+function renderAll() { renderTabs(); renderRoles(); renderGrid(); renderSlots(); }
+function renderTabs() {
+  $("tabs").innerHTML = [["match", "Matchup"], ["counter", "Counters e matchups fáceis"]].map(([k, n]) => `<button class="pill" data-tab="${k}" aria-pressed="${tab === k}">${n}</button>`).join("");
+}
 function renderRoles() {
   $("roles").innerHTML = Object.entries(ROLES).map(([k, n]) => `<button class="pill" data-role="${k}" aria-pressed="${k === role}">${n}</button>`).join("");
   $("onlyTop").setAttribute("aria-pressed", onlyTop);
 }
 function renderGrid() {
-  const t = norm($("q").value), sel = [me, foe];
+  const t = norm($("q").value), sel = tab === "match" ? [me, foe] : [cc];
   $("grid").innerHTML = Object.values(CH).filter(c => norm(c.name).includes(t) && (!onlyTop || TOPS.has(c.id)))
     .map(c => `<button data-id="${c.id}" title="${esc(c.name)}" aria-label="${esc(c.name)}" class="${sel.includes(c.id) ? "sel" : ""}"><img loading="lazy" src="${chImg(c.id)}" alt=""></button>`).join("");
 }
 function renderSlots() {
+  if (tab === "counter") { $("slots").innerHTML = `<div class="slots"><div class="slot" style="min-width:200px">${cc ? `<img src="${chImg(cc)}" alt=""><span><small>Campeão</small>${esc(CH[cc].name)}</span>` : `<span><small>Campeão</small>Escolha na lista</span>`}</div></div>`; return; }
   const slot = (k, label, id) => `<button class="slot" data-target="${k}" aria-pressed="${target === k}">${id ? `<img src="${chImg(id)}" alt=""><span><small>${label}</small>${esc(CH[id].name)}</span>` : `<span><small>${label}</small>Escolher…</span>`}</button>`;
   $("slots").innerHTML = `<div class="slots">${slot("me", "Meu campeão", me)}<button class="pill" id="swap" aria-label="Trocar">⇄</button>${slot("foe", "Campeão inimigo", foe)}</div>`;
 }
@@ -212,32 +222,113 @@ function show() {
     ${src.length ? `<div class="card fonts"><p class="eyebrow">Fontes consultadas pelo Gemini</p>${src.map(s => `<a href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.t)}</a>`).join("")}</div>` : ""}`;
   }
   h += `<p class="when">Gerado pelo Gemini em ${new Date(t).toLocaleString("pt-BR")}.${last.ns ? " Esta análise foi feita sem busca na web (limite atingido), então os números podem estar desatualizados." : ""} A IA pode errar: confira os números nas fontes antes de decidir.</p>`;
-  $("out").innerHTML = h;
+  ckey = `m:${role}:${me}:${foe}`;
+  $("out").innerHTML = h + askHtml();
+  renderQA();
+}
+
+/* ---------- Counters e matchups fáceis ---------- */
+const pt = () => V.split(".").slice(0, 2).join(".");
+const go = force => tab === "match" ? run(force) : runC(force);
+function promptC() {
+  const X = CH[cc].name;
+  return `Você é um coach de League of Legends de alto nível. Para a rota ${ROLES[role]} no patch atual (${pt()}), analise o campeão ${X}.
+Use a busca na web (Lolalytics, U.GG, Mobalytics, OP.GG) para conferir os dados atuais e diga quando não encontrar. Use os nomes de campeões como no cliente brasileiro do LoL. Escolha apenas campeões que realmente jogam nessa rota.
+Responda SOMENTE com um JSON válido, sem markdown e sem texto fora dele, neste formato:
+{"resumo":"1 frase sobre os pontos fortes e fracos de ${X} nessa rota",
+"counters":[{"campeao":"nome","motivo":"por que vence ${X} com facilidade","como_jogar":"1 frase prática"}],
+"matchups_faceis":[{"campeao":"nome","motivo":"por que ${X} vence com facilidade","como_jogar":"1 frase prática"}],
+"observacao":"1 frase sobre quando esses confrontos mudam (itens, jungle, nível)"}
+Traga de 5 a 6 campeões em "counters" e de 5 a 6 em "matchups_faceis".`;
+}
+async function runC(force) {
+  if (!cc) { $("out").innerHTML = `<p class="hint">Escolha um campeão na lista para ver os counters e os matchups fáceis dele.</p>`; return; }
+  if (!KEY) { renderKey(true); $("out").innerHTML = ""; return; }
+  const key = `cn:${role}:${cc}`, id = ++rid;
+  let c = null; try { c = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+  if (c && !force) { last = c; showC(); return; }
+  $("out").innerHTML = `<div class="card center"><p class="big">Gerando a análise…</p><p class="hint">Consultando o Gemini e a web. Leva de 10 a 40 segundos.</p></div>`;
+  try {
+    const got = await ask(promptC()), { o, src } = parse(got.j);
+    if (id !== rid) return;
+    last = { o, src, t: Date.now(), ns: !got.search };
+    try { localStorage.setItem(key, JSON.stringify(last)); } catch (e) {}
+    showC();
+  } catch (e) {
+    if (id !== rid) return;
+    $("out").innerHTML = `<div class="card bad"><p style="margin:0 0 12px">${esc(errMsg(e))}</p><button class="pill" id="retry">Tentar de novo</button></div>`;
+  }
+}
+function showC() {
+  const { o, src, t } = last, X = CH[cc];
+  const cid = n => CHN[norm(n)] || (Object.entries(CHN).find(([k]) => k.length > 3 && norm(n).includes(k)) || [])[1];
+  const mu2 = l => arr(l).map(x => { const i = cid(x.campeao); return `<div class="mu2">${i ? `<img src="${chImg(i)}" alt="">` : ""}<div><b>${esc(x.campeao)}</b><span>${esc(x.motivo)}</span><span>${esc(x.como_jogar)}</span></div></div>`; }).join("");
+  ckey = `c:${role}:${cc}`;
+  $("out").innerHTML = `<div class="tool"><button class="pill" id="refresh">Atualizar análise</button></div>
+  <div class="card hero center"><div class="vs"><div class="p"><img src="${chImg(cc)}" alt="">${esc(X.name)}</div></div><p class="src">${esc(o.resumo)}</p></div>
+  <div class="card bad"><p class="eyebrow">Counters: quem vence ${esc(X.name)} com facilidade</p>${mu2(o.counters)}</div>
+  <div class="card good"><p class="eyebrow">Matchups fáceis: quem ${esc(X.name)} vence com facilidade</p>${mu2(o.matchups_faceis)}</div>
+  ${o.observacao ? `<div class="card"><p class="eyebrow">Atenção</p><p style="margin:0">${esc(o.observacao)}</p></div>` : ""}
+  ${src.length ? `<div class="card fonts"><p class="eyebrow">Fontes consultadas pelo Gemini</p>${src.map(s => `<a href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.t)}</a>`).join("")}</div>` : ""}
+  <p class="when">Gerado pelo Gemini em ${new Date(t).toLocaleString("pt-BR")}.${last.ns ? " Esta análise foi feita sem busca na web (limite atingido), então os números podem estar desatualizados." : ""} A IA pode errar: confira os números nas fontes antes de decidir.</p>${askHtml()}`;
+  renderQA();
+}
+
+/* ---------- Pergunta extra ---------- */
+const textOf = j => { const c = j.candidates && j.candidates[0]; return ((c && c.content && c.content.parts) || []).map(p => p.text || "").join("").trim() || "Sem resposta."; };
+const srcOf = j => { const c = j.candidates && j.candidates[0], ch = (c && c.groundingMetadata && c.groundingMetadata.groundingChunks) || []; return [...new Map(ch.filter(x => x.web && /^https:\/\//.test(x.web.uri || "")).map(x => [x.web.uri, { u: x.web.uri, t: x.web.title || "fonte" }])).values()].slice(0, 4); };
+const fmt = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+function askHtml() {
+  return `<div class="card"><p class="eyebrow">Pergunte ao Gemini</p><textarea id="askIn" rows="3" placeholder="Ex.: e se o jungle inimigo for agressivo? Que item evitar contra dano mágico?"></textarea><div class="tool"><button class="pill" id="askBtn">Perguntar</button></div><div id="askLog"></div></div>`;
+}
+function renderQA() {
+  const el = $("askLog"); if (!el) return;
+  el.innerHTML = (QA[ckey] || []).map(x => `<div class="qa"><p class="q">${esc(x.q)}</p><div>${fmt(x.a)}</div>${x.s.length ? `<div class="fonts" style="margin-top:8px">${x.s.map(s => `<a href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.t)}</a>`).join("")}</div>` : ""}</div>`).join("");
+}
+async function askQ() {
+  const inp = $("askIn"), q = inp.value.trim(); if (!q) return;
+  if (!KEY) { renderKey(true); return; }
+  const key = ckey, btn = $("askBtn"); btn.disabled = true; btn.textContent = "Perguntando…";
+  const ctx = tab === "match" ? `Contexto: confronto na rota ${ROLES[role]}, meu campeão ${CH[me].name} contra ${CH[foe].name}, patch ${pt()}.` : `Contexto: rota ${ROLES[role]}, campeão ${CH[cc].name}, patch ${pt()}.`;
+  const item = { q, a: "", s: [] };
+  try {
+    const got = await ask(`${ctx}\nVocê é um coach de League of Legends de alto nível. Responda em português do Brasil, de forma direta e prática, em no máximo 10 linhas. Use a busca na web se precisar de dados atuais e use os nomes do cliente brasileiro do LoL.\nPergunta: ${q}`);
+    item.a = textOf(got.j); item.s = srcOf(got.j); inp.value = "";
+  } catch (e) { item.a = errMsg(e); }
+  (QA[key] = QA[key] || []).unshift(item);
+  const b = $("askBtn"); if (b) { b.disabled = false; b.textContent = "Perguntar"; }
+  if (key === ckey) renderQA();
 }
 
 /* ---------- Eventos ---------- */
 $("q").oninput = renderGrid;
 $("onlyTop").onclick = () => { onlyTop = !onlyTop; renderRoles(); renderGrid(); };
+$("tabs").onclick = e => {
+  const b = e.target.closest("[data-tab]"); if (!b || b.dataset.tab === tab) return;
+  tab = b.dataset.tab; rid++; $("out").innerHTML = ""; renderTabs(); renderGrid(); renderSlots();
+  if (tab === "counter" || (me && foe)) go(false); else $("out").innerHTML = "";
+};
 $("keyBtn").onclick = () => renderKey(!$("keyBox").innerHTML);
-$("roles").onclick = e => { const b = e.target.closest("[data-role]"); if (!b) return; role = b.dataset.role; renderRoles(); run(false); };
+$("roles").onclick = e => { const b = e.target.closest("[data-role]"); if (!b) return; role = b.dataset.role; renderRoles(); go(false); };
 $("grid").onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
-  if (target === "me") { me = b.dataset.id; target = "foe"; } else { foe = b.dataset.id; }
-  renderGrid(); renderSlots(); run(false);
+  if (tab === "counter") cc = b.dataset.id; else if (target === "me") { me = b.dataset.id; target = "foe"; } else { foe = b.dataset.id; }
+  renderGrid(); renderSlots(); go(false);
 };
 $("slots").onclick = e => {
   const t = e.target.closest("[data-target],#swap"); if (!t) return;
-  if (t.id === "swap") { [me, foe] = [foe, me]; run(false); } else target = t.dataset.target;
+  if (t.id === "swap") { [me, foe] = [foe, me]; go(false); } else target = t.dataset.target;
   renderGrid(); renderSlots();
 };
 $("keyBox").onclick = e => {
-  if (e.target.id === "saveKey") { KEY = $("keyIn").value.trim(); try { localStorage.setItem("gemini-key", KEY); } catch (x) {} renderKey(false); run(false); }
+  if (e.target.id === "saveKey") { KEY = $("keyIn").value.trim(); try { localStorage.setItem("gemini-key", KEY); } catch (x) {} renderKey(false); go(false); }
   if (e.target.id === "delKey") { KEY = ""; try { localStorage.removeItem("gemini-key"); } catch (x) {} renderKey(true); }
 };
 $("out").onclick = e => {
   if (e.target.id === "compact") { compact = !compact; show(); }
-  if (e.target.id === "refresh") run(true);
-  if (e.target.id === "retry") run(false);
+  if (e.target.id === "refresh") go(true);
+  if (e.target.id === "retry") go(false);
+  if (e.target.id === "askBtn") askQ();
 };
 init();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
